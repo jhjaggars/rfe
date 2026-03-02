@@ -1,6 +1,6 @@
 ---
-name: jira-create-from
-description: Create well-defined JIRA Feature issues from a strategy-level source issue (RFE, Outcome, OCPSTRAT, or any issue with linked RFEs). Triggers on: /jira-create-from, "create features from RFE", "decompose outcome into features", "create features from OCPSTRAT"
+name: feature-create-from
+description: Create well-defined JIRA Feature issues from a strategy-level source issue (RFE, Outcome, OCPSTRAT, or any issue with linked RFEs). Triggers on: /feature-create-from, "create features from RFE", "decompose outcome into features", "create features from OCPSTRAT"
 argument-hint: <JIRA-KEY>
 ---
 

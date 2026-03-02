@@ -1,5 +1,5 @@
 {
-  "name": "jira-create-from",
+  "name": "feature-create-from",
   "description": "Skills for creating well-defined JIRA Features from higher-level strategy issues (RFEs, Outcomes, OCPSTRAT issues)",
   "version": "1.0.0",
   "author": {

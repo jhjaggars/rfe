@@ -1,10 +1,10 @@
-# jira-create-from
+# feature-create-from
 
 A Claude Code plugin with skills for creating well-defined JIRA Feature issues from higher-level strategy issues — RFEs, Outcomes, OCPSTRAT issues, or any issue with linked Feature Requests.
 
 ## Skills
 
-- **`/rfe-to-features`** — Fetch a strategy issue and all its linked RFEs, ask targeted questions to fill gaps, then draft and create Feature issues in the appropriate JIRA project.
+- **`/feature-create-from`** — Fetch a strategy issue and all its linked RFEs, ask targeted questions to fill gaps, then draft and create Feature issues in the appropriate JIRA project.
 
 ## Prerequisites
 
@@ -70,18 +70,18 @@ Add the plugin to your Claude Code settings (`.claude/settings.local.json`):
   "localMarketplaces": [
     {
       "type": "local",
-      "path": "/path/to/jira-create-from"
+      "path": "/path/to/feature-create-from"
     }
   ]
 }
 ```
 
-Restart Claude Code. The `/rfe-to-features` skill will be available.
+Restart Claude Code. The `/feature-create-from` skill will be available.
 
 ## Usage
 
 ```
-/rfe-to-features OCPSTRAT-2666
+/feature-create-from OCPSTRAT-2666
 ```
 
 The skill will:

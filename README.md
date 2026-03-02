@@ -93,7 +93,7 @@ The skill will:
 
 ## Notes on JIRA issue creation
 
-**jira-cli cannot create properly formatted issue descriptions.** It corrupts Jira wiki markup — converting numbered lists to headers and escaping hyphens and parentheses. This plugin uses the JIRA REST API (via Python) for issue creation to preserve formatting.
+This plugin uses the JIRA REST API (via Python) rather than jira-cli for creating Feature issues. jira-cli escapes parentheses in issue bodies — `(text)` becomes `\(text\)` — which corrupts the `( ) Yes ( ) No ( ) N/A` checkboxes in the official Feature requirements table. It also converts `#` numbered list items into `h1.` headers.
 
 For this to work, `JIRA_API_TOKEN` must be set in your environment (see setup above). Python 3 and the `requests` library must be available:
 

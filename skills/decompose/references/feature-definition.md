@@ -96,9 +96,23 @@ print(resp.json()['key'])  # e.g., ROSA-456
 EOF
 ```
 
-**Linking** (jira-cli works fine for link operations):
+**Linking** (use REST API, same as issue creation):
 ```bash
-jira issue link ROSA-456 OCPSTRAT-2666 "Implements"
+uv run --with requests python3 - << 'EOF'
+import os, requests
+
+token = os.environ['JIRA_API_TOKEN']
+
+resp = requests.post(
+    'https://issues.redhat.com/rest/api/2/issueLink',
+    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    json={"type": {"name": "Implements"}, "inwardIssue": {"key": "ROSA-456"}, "outwardIssue": {"key": "OCPSTRAT-2666"}}
+)
+if resp.ok:
+    print("Link created")
+else:
+    print(f"Error {resp.status_code}: {resp.text}")
+EOF
 ```
 
 ## Official Feature Body Template (Jira Wiki Markup)

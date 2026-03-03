@@ -17,9 +17,18 @@ Read `references/feature-definition.md` now. It defines what a Feature must cont
 **Step 1: Fetch the source issue.**
 
 ```bash
-jira issue view <KEY> --raw | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
+uv run --with requests python3 - << 'EOF'
+import os, requests
+
+token = os.environ['JIRA_API_TOKEN']
+key = '<KEY>'
+
+resp = requests.get(
+    f'https://issues.redhat.com/rest/api/2/issue/{key}',
+    headers={'Authorization': f'Bearer {token}'}
+)
+resp.raise_for_status()
+d = resp.json()
 f = d['fields']
 print('Summary:', f.get('summary'))
 print('Type:', f['issuetype']['name'])
@@ -31,10 +40,10 @@ for link in f.get('issuelinks', []):
     inward = link.get('inwardIssue')
     outward = link.get('outwardIssue')
     if inward:
-        print(f'  [{link[\"type\"][\"inward\"]}] {inward[\"key\"]}: {inward[\"fields\"][\"summary\"]}')
+        print(f'  [{link["type"]["inward"]}] {inward["key"]}: {inward["fields"]["summary"]}')
     if outward:
-        print(f'  [{link[\"type\"][\"outward\"]}] {outward[\"key\"]}: {outward[\"fields\"][\"summary\"]}')
-"
+        print(f'  [{link["type"]["outward"]}] {outward["key"]}: {outward["fields"]["summary"]}')
+EOF
 ```
 
 **Step 2: Fetch linked issues.**
@@ -47,16 +56,25 @@ Parse all linked issue keys from the output above. Fetch each one, prioritizing:
 Cap at 10 linked issues. For each:
 
 ```bash
-jira issue view <LINKED-KEY> --raw | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
+uv run --with requests python3 - << 'EOF'
+import os, requests
+
+token = os.environ['JIRA_API_TOKEN']
+key = '<LINKED-KEY>'
+
+resp = requests.get(
+    f'https://issues.redhat.com/rest/api/2/issue/{key}',
+    headers={'Authorization': f'Bearer {token}'}
+)
+resp.raise_for_status()
+d = resp.json()
 f = d['fields']
 print('Key:', d['key'])
 print('Summary:', f.get('summary'))
 print('Type:', f['issuetype']['name'])
 print('Status:', f['status']['name'])
 print('Description:', (f.get('description') or '')[:1500])
-"
+EOF
 ```
 
 **Step 3: Synthesize context.**
@@ -161,13 +179,41 @@ EOF
 **Step 2: Link to source issue**
 
 ```bash
-jira issue link <NEW-KEY> <SOURCE-KEY> "Implements"
+uv run --with requests python3 - << 'EOF'
+import os, requests
+
+token = os.environ['JIRA_API_TOKEN']
+
+resp = requests.post(
+    'https://issues.redhat.com/rest/api/2/issueLink',
+    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    json={"type": {"name": "Implements"}, "inwardIssue": {"key": "<NEW-KEY>"}, "outwardIssue": {"key": "<SOURCE-KEY>"}}
+)
+if resp.ok:
+    print("Link created: <NEW-KEY> Implements <SOURCE-KEY>")
+else:
+    print(f"Error {resp.status_code}: {resp.text}")
+EOF
 ```
 
 **Step 3: Link to parent Outcome (if known)**
 
 ```bash
-jira issue link <NEW-KEY> <OUTCOME-KEY> "is implemented by"
+uv run --with requests python3 - << 'EOF'
+import os, requests
+
+token = os.environ['JIRA_API_TOKEN']
+
+resp = requests.post(
+    'https://issues.redhat.com/rest/api/2/issueLink',
+    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    json={"type": {"name": "is implemented by"}, "inwardIssue": {"key": "<NEW-KEY>"}, "outwardIssue": {"key": "<OUTCOME-KEY>"}}
+)
+if resp.ok:
+    print("Link created: <NEW-KEY> is implemented by <OUTCOME-KEY>")
+else:
+    print(f"Error {resp.status_code}: {resp.text}")
+EOF
 ```
 
 **Step 4: Report results**

@@ -4,61 +4,17 @@ A Claude Code plugin with skills for triaging RFEs and decomposing them into wel
 
 ## Skills
 
+- **`/rfe:init`** — Check and install prerequisites (python3, uv), configure your JIRA Personal Access Token, and verify REST API access. Run this first.
 - **`/rfe:triage`** — Query the RFE project, classify results by Feature coverage, and identify which RFEs are ready to decompose. Use this to discover candidates before running `/rfe:decompose`.
 - **`/rfe:decompose`** — Fetch a strategy issue and all its linked RFEs, ask targeted questions to fill gaps, then draft and create Feature issues in the appropriate JIRA project.
 
 ## Prerequisites
 
-### 1. Install jira-cli
+- **python3** — standard on macOS; install via `brew install python3` if missing
+- **uv** — install via `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- **JIRA Personal Access Token** — generated at [https://issues.redhat.com](https://issues.redhat.com) under Profile → Personal Access Tokens
 
-**macOS (recommended):**
-```bash
-brew install jira-cli
-```
-
-**Go (any platform):**
-```bash
-go install github.com/ankitpokhrel/jira-cli/cmd/jira@latest
-```
-
-### 2. Get a Personal Access Token from JIRA
-
-1. Log in to [https://issues.redhat.com](https://issues.redhat.com)
-2. Click your profile avatar (top right) → **Profile**
-3. In the left sidebar, click **Personal Access Tokens**
-4. Click **Create token**, give it a name (e.g. `claude-code`), set an expiry
-5. Copy the token — you won't see it again
-
-### 3. Configure your environment
-
-Add to your `~/.zshrc` or `~/.bashrc`:
-
-```bash
-export JIRA_API_TOKEN="your-token-here"
-export JIRA_AUTH_TYPE=bearer
-```
-
-Then reload your shell:
-```bash
-source ~/.zshrc
-```
-
-### 4. Initialize jira-cli
-
-```bash
-jira init
-```
-
-When prompted:
-- **Installation type**: Cloud or Server → choose **Server** (Red Hat uses Server)
-- **Server URL**: `https://issues.redhat.com`
-- **Login**: your Red Hat email address
-- **API token**: paste the token from step 2
-
-Verify it works:
-```bash
-jira issue list -q "assignee = currentUser()" --plain
-```
+Run `/rfe:init` to have Claude check and install prerequisites and walk you through token setup automatically.
 
 ## Installation
 
@@ -77,7 +33,7 @@ Add the plugin to your Claude Code settings (`.claude/settings.local.json`):
 }
 ```
 
-Restart Claude Code. The `/rfe:triage` and `/rfe:decompose` skills will be available.
+Restart Claude Code. The `/rfe:init`, `/rfe:triage`, and `/rfe:decompose` skills will be available.
 
 ## Usage
 
@@ -117,6 +73,6 @@ The skill will:
 
 ## Notes on JIRA issue creation
 
-This plugin uses the JIRA REST API (via Python) rather than jira-cli for creating Feature issues. jira-cli escapes parentheses in issue bodies — `(text)` becomes `\(text\)` — which corrupts the `( ) Yes ( ) No ( ) N/A` checkboxes in the official Feature requirements table. It also converts `#` numbered list items into `h1.` headers.
+This plugin uses the JIRA REST API (via Python) for all JIRA operations — fetching issues, creating Features, and creating links. jira-cli is not required.
 
-For this to work, `JIRA_API_TOKEN` must be set in your environment (see setup above). Python 3 and `uv` must be available — `uv` handles the `requests` dependency automatically on each invocation, with no manual install required.
+`uv` handles the `requests` dependency automatically on each invocation with no manual install required. `JIRA_API_TOKEN` must be set in your environment — run `/rfe:init` if you haven't configured it yet.

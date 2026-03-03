@@ -82,9 +82,18 @@ Found <N> RFEs  (showing <shown>, <total> total matches)
 **When user selects an RFE for drill-down**, fetch its full details:
 
 ```bash
-jira issue view <KEY> --raw | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
+uv run --with requests python3 - << 'EOF'
+import os, requests, json
+
+token = os.environ['JIRA_API_TOKEN']
+key = '<KEY>'
+
+resp = requests.get(
+    f'https://issues.redhat.com/rest/api/2/issue/{key}',
+    headers={'Authorization': f'Bearer {token}'}
+)
+resp.raise_for_status()
+d = resp.json()
 f = d['fields']
 print('Key:', d['key'])
 print('Summary:', f.get('summary'))
@@ -106,8 +115,8 @@ for link in f.get('issuelinks', []):
         if li:
             ltype = li.get('fields', {}).get('issuetype', {}).get('name', '?')
             lstatus = li.get('fields', {}).get('status', {}).get('name', '?')
-            print(f'  [{ltype}] {li[\"key\"]} ({lstatus}): {li[\"fields\"][\"summary\"]}')
-"
+            print(f'  [{ltype}] {li["key"]} ({lstatus}): {li["fields"]["summary"]}')
+EOF
 ```
 
 **Assess readiness** for Feature creation. Report on:

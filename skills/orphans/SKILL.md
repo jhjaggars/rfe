@@ -80,7 +80,7 @@ jql = (
 )
 
 resp = requests.get(
-    'https://issues.redhat.com/rest/api/2/search',
+    'https://redhat.atlassian.net/jira/rest/api/2/search',
     headers={'Authorization': f'Bearer {token}'},
     params={'jql': jql, 'fields': 'summary,status,issuetype,fixVersions', 'maxResults': 10}
 )
@@ -190,7 +190,7 @@ import os, requests
 token = os.environ['JIRA_API_TOKEN']
 key = '<KEY>'
 resp = requests.get(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}/transitions',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/transitions',
     headers={'Authorization': f'Bearer {token}'}
 )
 for t in resp.json().get('transitions', []):
@@ -207,7 +207,7 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 token = os.environ['JIRA_API_TOKEN']
 resp = requests.post(
-    'https://issues.redhat.com/rest/api/2/issueLink',
+    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json={
         "type": {"name": "is implemented by"},
@@ -232,7 +232,7 @@ key = '<RFE-KEY>'
 feature = '<FEATURE-KEY>'
 
 resp = requests.post(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}/comment',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/comment',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json={"body": f"Closing as this capability was delivered in {feature}. The requested functionality is now available in the product. If you believe something is still missing, please open a new RFE with specific details."}
 )
@@ -257,7 +257,7 @@ body = {"transition": {"id": transition_id}}
 # body["fields"] = {"resolution": {"name": "Done"}}
 
 resp = requests.post(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}/transitions',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/transitions',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json=body
 )

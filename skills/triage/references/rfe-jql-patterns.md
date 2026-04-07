@@ -127,7 +127,7 @@ ORDER BY votes DESC, created DESC
 ## REST API Search Endpoint
 
 ```
-GET https://issues.redhat.com/rest/api/2/search
+GET https://redhat.atlassian.net/jira/rest/api/2/search
 ```
 
 **Query parameters:**
@@ -153,7 +153,7 @@ import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
 resp = requests.get(
-    'https://issues.redhat.com/rest/api/2/search',
+    'https://redhat.atlassian.net/jira/rest/api/2/search',
     headers={
         'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json'

@@ -96,14 +96,14 @@ payload = {
 }
 
 resp = requests.post(
-    'https://issues.redhat.com/rest/api/2/issue',
+    'https://redhat.atlassian.net/jira/rest/api/2/issue',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json=payload
 )
 if resp.ok:
     key = resp.json()['key']
     print(f"Created: {key}")
-    print(f"URL: https://issues.redhat.com/browse/{key}")
+    print(f"URL: https://redhat.atlassian.net/jira/browse/{key}")
 else:
     print(f"Error {resp.status_code}: {resp.text}")
 EOF
@@ -118,7 +118,7 @@ import os, requests
 token = os.environ['JIRA_API_TOKEN']
 
 resp = requests.post(
-    'https://issues.redhat.com/rest/api/2/issueLink',
+    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json={
         "type": {"name": "Implements"},

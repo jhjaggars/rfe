@@ -98,6 +98,6 @@ What would you like to do next?
 
 ## Error Handling
 
-- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running. Generate a PAT at https://issues.redhat.com/secure/ViewProfile.jspa under Personal Access Tokens."
+- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running. Generate a PAT at https://redhat.atlassian.net/jira/secure/ViewProfile.jspa under Personal Access Tokens."
 - **No results returned:** Report the JQL used and suggest relaxing filters.
 - **REST API error:** Show the status code and response body, then ask whether to retry with modified parameters.

@@ -28,7 +28,7 @@ token = os.environ['JIRA_API_TOKEN']
 key = '<KEY>'
 
 resp = requests.get(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}',
     headers={'Authorization': f'Bearer {token}'}
 )
 resp.raise_for_status()
@@ -67,7 +67,7 @@ token = os.environ['JIRA_API_TOKEN']
 key = '<LINKED-KEY>'
 
 resp = requests.get(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}',
     headers={'Authorization': f'Bearer {token}'}
 )
 resp.raise_for_status()
@@ -125,7 +125,7 @@ keywords = '<KEYWORD>'  # key terms from the RFE summary
 jql = f'project = {project} AND issuetype in (Feature, Initiative) AND text ~ "{keywords}" AND status != Closed ORDER BY updated DESC'
 
 resp = requests.get(
-    'https://issues.redhat.com/rest/api/2/search',
+    'https://redhat.atlassian.net/jira/rest/api/2/search',
     headers={'Authorization': f'Bearer {token}'},
     params={'jql': jql, 'fields': 'summary,status,issuetype', 'maxResults': 20}
 )
@@ -232,7 +232,7 @@ payload = {
 }
 
 resp = requests.post(
-    'https://issues.redhat.com/rest/api/2/issue',
+    'https://redhat.atlassian.net/jira/rest/api/2/issue',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json=payload
 )
@@ -254,7 +254,7 @@ import os, requests
 token = os.environ['JIRA_API_TOKEN']
 
 resp = requests.post(
-    'https://issues.redhat.com/rest/api/2/issueLink',
+    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json={"type": {"name": "Implements"}, "inwardIssue": {"key": "<NEW-KEY>"}, "outwardIssue": {"key": "<SOURCE-KEY>"}}
 )
@@ -274,7 +274,7 @@ import os, requests
 token = os.environ['JIRA_API_TOKEN']
 
 resp = requests.post(
-    'https://issues.redhat.com/rest/api/2/issueLink',
+    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json={"type": {"name": "is implemented by"}, "inwardIssue": {"key": "<NEW-KEY>"}, "outwardIssue": {"key": "<OUTCOME-KEY>"}}
 )
@@ -292,8 +292,8 @@ EOF
 
 | Key | Type | Summary | Project | Link |
 |-----|------|---------|---------|------|
-| ROSA-456 | Feature | ... | ROSA | https://issues.redhat.com/browse/ROSA-456 |
-| ROSA-457 | Initiative | ... | ROSA | https://issues.redhat.com/browse/ROSA-457 |
+| ROSA-456 | Feature | ... | ROSA | https://redhat.atlassian.net/jira/browse/ROSA-456 |
+| ROSA-457 | Initiative | ... | ROSA | https://redhat.atlassian.net/jira/browse/ROSA-457 |
 
 Links created:
 - ROSA-456 Implements OCPSTRAT-2666
@@ -304,7 +304,7 @@ Links created:
 
 ## Error Handling
 
-- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running. Generate a PAT at https://issues.redhat.com/secure/ViewProfile.jspa under Personal Access Tokens."
+- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running. Generate a PAT at https://redhat.atlassian.net/jira/secure/ViewProfile.jspa under Personal Access Tokens."
 - **Project routing unclear:** Ask the user which project to use rather than guessing.
 - **REST API 400 / field errors:** Show the error and ask the user whether to retry with modified fields or proceed manually.
 - **Issue not found:** Report the key that failed and continue with the others.

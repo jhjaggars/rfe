@@ -228,7 +228,7 @@ Use AskUserQuestion to present these options if the conversation is interactive.
 
 ## Error Handling
 
-- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running. Generate a PAT at https://issues.redhat.com/secure/ViewProfile.jspa under Personal Access Tokens."
+- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running. Generate a PAT at https://redhat.atlassian.net/jira/secure/ViewProfile.jspa under Personal Access Tokens."
 - **No results returned:** Report the JQL used and suggest relaxing filters (e.g., extend `period`, broaden `status`, remove `component` filter).
 - **REST API 400 with status error:** The JQL uses a status name that doesn't exist in this project. Use `AND status not in ("Closed")` instead. See `../triage/references/rfe-jql-patterns.md` for verified status values.
 - **REST API error (other):** Show the status code and response body, then ask whether to retry with modified parameters.

@@ -157,7 +157,7 @@ token = os.environ['JIRA_API_TOKEN']
 key = '<KEY>'
 
 resp = requests.get(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}/transitions',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/transitions',
     headers={'Authorization': f'Bearer {token}'}
 )
 resp.raise_for_status()
@@ -177,7 +177,7 @@ import os, requests
 token = os.environ['JIRA_API_TOKEN']
 
 resp = requests.post(
-    'https://issues.redhat.com/rest/api/2/issueLink',
+    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json={
         "type": {"name": "Duplicate"},
@@ -203,7 +203,7 @@ key = '<DUPLICATE-KEY>'
 canonical = '<CANONICAL-KEY>'
 
 resp = requests.post(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}/comment',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/comment',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json={"body": f"Closing as duplicate of {canonical}, which has higher vote count and represents the same capability request. Customer signal is consolidated there."}
 )
@@ -225,7 +225,7 @@ key = '<DUPLICATE-KEY>'
 transition_id = '<TRANSITION-ID>'  # from Step 1
 
 resp = requests.post(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}/transitions',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/transitions',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json={"transition": {"id": transition_id}}
 )

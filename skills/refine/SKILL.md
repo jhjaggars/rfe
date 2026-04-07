@@ -89,7 +89,7 @@ token = os.environ['JIRA_API_TOKEN']
 key = '<KEY>'
 
 resp = requests.get(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}',
     headers={'Authorization': f'Bearer {token}'}
 )
 resp.raise_for_status()
@@ -204,7 +204,7 @@ key = '<KEY>'
 comment = '<COMMENT-TEXT>'
 
 resp = requests.post(
-    f'https://issues.redhat.com/rest/api/2/issue/{key}/comment',
+    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/comment',
     headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
     json={"body": comment}
 )

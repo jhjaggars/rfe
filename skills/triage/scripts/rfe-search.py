@@ -5,7 +5,7 @@ Usage:
     uv run --with requests python3 rfe-search.py --jql "..." [--limit N] [--all]
 
 Environment:
-    JIRA_API_TOKEN  Personal Access Token for issues.redhat.com
+    JIRA_API_TOKEN  Personal Access Token for redhat.atlassian.net/jira
 
 Output:
     Line 1: summary header  "Total matches: N (showing M)"
@@ -39,7 +39,7 @@ def main():
         print("ERROR: JIRA_API_TOKEN not set", file=sys.stderr)
         print("Set:      export JIRA_API_TOKEN=<your-PAT>", file=sys.stderr)
         print(
-            "Generate: https://issues.redhat.com/secure/ViewProfile.jspa",
+            "Generate: https://redhat.atlassian.net/jira/secure/ViewProfile.jspa",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -67,7 +67,7 @@ def main():
                 params["nextPageToken"] = next_page_token
 
             resp = requests.get(
-                "https://issues.redhat.com/rest/api/3/search/jql",
+                "https://redhat.atlassian.net/jira/rest/api/3/search/jql",
                 headers=headers,
                 params=params,
             )
@@ -87,7 +87,7 @@ def main():
                 break
     else:
         resp = requests.get(
-            "https://issues.redhat.com/rest/api/3/search/jql",
+            "https://redhat.atlassian.net/jira/rest/api/3/search/jql",
             headers=headers,
             params={
                 "jql": args.jql,

@@ -13,7 +13,7 @@ A Claude Code plugin with skills for triaging RFEs and decomposing them into wel
 
 - **python3** — standard on macOS; install via `brew install python3` if missing
 - **uv** — install via `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- **JIRA Personal Access Token** — generated at [https://issues.redhat.com](https://issues.redhat.com) under Profile → Personal Access Tokens
+- **JIRA Personal Access Token** — generated at [https://redhat.atlassian.net/jira](https://redhat.atlassian.net/jira) under Profile → Personal Access Tokens
 
 Run `/rfe:init` to have Claude check and install prerequisites and walk you through token setup automatically.
 
@@ -47,7 +47,7 @@ Run `/rfe:init` once to verify your environment and configure JIRA access:
 This works through four phases:
 
 1. **Prerequisites** — checks for `python3` and `uv`, installs them via Homebrew/curl if missing
-2. **JIRA token** — checks for `JIRA_API_TOKEN` in your environment; if absent, guides you to create a Personal Access Token at issues.redhat.com and saves it to your shell profile
+2. **JIRA token** — checks for `JIRA_API_TOKEN` in your environment; if absent, guides you to create a Personal Access Token at redhat.atlassian.net/jira and saves it to your shell profile
 3. **API verification** — runs a live search to confirm the token works and the REST API is reachable
 4. **Summary** — prints a status table showing pass/fail for each check
 
@@ -151,7 +151,7 @@ Example output after creation:
 
 | Key | Summary | Project | Link |
 |-----|---------|---------|------|
-| ROSA-456 | Auto-scaling for managed clusters | ROSA | https://issues.redhat.com/browse/ROSA-456 |
+| ROSA-456 | Auto-scaling for managed clusters | ROSA | https://redhat.atlassian.net/jira/browse/ROSA-456 |
 
 Links created:
 - ROSA-456 Implements OCPSTRAT-2666

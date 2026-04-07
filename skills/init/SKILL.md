@@ -65,10 +65,10 @@ echo "${JIRA_API_TOKEN:+set}"
 
 Tell the user:
 
-> To use the rfe plugin you need a Personal Access Token from https://issues.redhat.com.
+> To use the rfe plugin you need a Personal Access Token from https://redhat.atlassian.net/jira.
 >
 > Steps:
-> 1. Log in to https://issues.redhat.com
+> 1. Log in to https://redhat.atlassian.net/jira
 > 2. Click your profile avatar (top right) → **Profile**
 > 3. In the left sidebar, click **Personal Access Tokens**
 > 4. Click **Create token**, give it a name (e.g. `claude-code`), and set an expiry
@@ -115,7 +115,7 @@ uv run --with requests python3 <SKILL_BASE_DIR>/../../skills/triage/scripts/rfe-
 - If it returns an authentication error (401/403) → tell the user:
   > "The JIRA API token was rejected. Check that it hasn't expired and that it was copied correctly. Re-run `/rfe:init` to enter a new token."
 - If it returns a network error → tell the user:
-  > "Could not reach https://issues.redhat.com. Check your network connection and try again."
+  > "Could not reach https://redhat.atlassian.net/jira. Check your network connection and try again."
 
 ---
 

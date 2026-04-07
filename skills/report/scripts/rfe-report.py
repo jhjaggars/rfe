@@ -8,7 +8,7 @@ Reads RFEs from JIRA (via the same API as rfe-search.py), categorizes them,
 and writes a markdown prioritization report to stdout or a file.
 
 Environment:
-    JIRA_API_TOKEN  Personal Access Token for issues.redhat.com
+    JIRA_API_TOKEN  Personal Access Token for redhat.atlassian.net/jira
 """
 
 import argparse
@@ -39,7 +39,7 @@ def fetch_issues(jql, token, fetch_all=False, limit=25):
                 params["nextPageToken"] = next_page_token
 
             resp = requests.get(
-                "https://issues.redhat.com/rest/api/3/search/jql",
+                "https://redhat.atlassian.net/jira/rest/api/3/search/jql",
                 headers=headers,
                 params=params,
             )
@@ -57,7 +57,7 @@ def fetch_issues(jql, token, fetch_all=False, limit=25):
         return issues
     else:
         resp = requests.get(
-            "https://issues.redhat.com/rest/api/3/search/jql",
+            "https://redhat.atlassian.net/jira/rest/api/3/search/jql",
             headers=headers,
             params={"jql": jql, "maxResults": limit, "fields": fields},
         )

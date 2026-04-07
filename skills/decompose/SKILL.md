@@ -1,7 +1,7 @@
 ---
 name: decompose
-description: Create well-defined JIRA artifacts (Features or Initiatives) from a strategy-level source issue (RFE, Outcome, OCPSTRAT, or any issue with linked RFEs). Triggers on: /rfe:decompose, "decompose RFE", "create features from RFE", "decompose outcome into features", "create features from OCPSTRAT", "create initiative from RFE"
-argument-hint: <JIRA-KEY>
+description: "Create well-defined JIRA artifacts (Features or Initiatives) from a strategy-level source issue (RFE, Outcome, OCPSTRAT, or any issue with linked RFEs). Triggers on: /rfe:decompose, \"decompose RFE\", \"create features from RFE\", \"decompose outcome into features\", \"create features from OCPSTRAT\", \"create initiative from RFE\""
+argument-hint: "<JIRA-KEY>"
 ---
 
 # decompose

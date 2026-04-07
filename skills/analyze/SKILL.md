@@ -1,6 +1,6 @@
 ---
 name: analyze
-description: Analyze RFEs to identify themes by component and recommend combined efforts. Triggers on: /rfe:analyze, "analyze RFEs", "RFE themes", "theme analysis"
+description: "Analyze RFEs to identify themes by component and recommend combined efforts. Triggers on: /rfe:analyze, \"analyze RFEs\", \"RFE themes\", \"theme analysis\""
 argument-hint: "[period:<months>] [component:<name>] [status:<value>]"
 ---
 

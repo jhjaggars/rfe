@@ -1,6 +1,6 @@
 ---
 name: init
-description: Check and install prerequisites for the rfe plugin, configure JIRA access, and verify connectivity. Triggers on: /rfe:init, "set up rfe", "configure rfe", "initialize rfe", "rfe setup"
+description: "Check and install prerequisites for the rfe plugin, configure JIRA access, and verify connectivity. Triggers on: /rfe:init, \"set up rfe\", \"configure rfe\", \"initialize rfe\", \"rfe setup\""
 argument-hint: ""
 ---
 

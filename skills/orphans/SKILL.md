@@ -1,6 +1,6 @@
 ---
 name: orphans
-description: Find open RFEs where the requested functionality already exists in the product (shipped but unlinked), and suggest closing them. Triggers on: /rfe:orphans, "find orphan RFEs", "find shipped RFEs", "RFEs already done", "unlinked done RFEs", "orphaned feature requests"
+description: "Find open RFEs where the requested functionality already exists in the product (shipped but unlinked), and suggest closing them. Triggers on: /rfe:orphans, \"find orphan RFEs\", \"find shipped RFEs\", \"RFEs already done\", \"unlinked done RFEs\", \"orphaned feature requests\""
 argument-hint: "[component:<name>] [period:<months>] [status:<value>]"
 ---
 

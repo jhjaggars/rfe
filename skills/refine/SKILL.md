@@ -1,6 +1,6 @@
 ---
 name: refine
-description: Systematically work through a priority-ordered queue of open RFEs, assessing each for readiness and advancing them toward Feature creation. Triggers on: /rfe:refine, "refine RFEs", "work through RFE queue", "process refinement queue", "RFE refinement session", "advance RFEs to features"
+description: "Systematically work through a priority-ordered queue of open RFEs, assessing each for readiness and advancing them toward Feature creation. Triggers on: /rfe:refine, \"refine RFEs\", \"work through RFE queue\", \"process refinement queue\", \"RFE refinement session\", \"advance RFEs to features\""
 argument-hint: "[component:<name>] [status:<value>] [priority:<level>] [limit:<n>]"
 ---
 

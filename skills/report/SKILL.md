@@ -1,6 +1,6 @@
 ---
 name: report
-description: Generate a prioritization report across all open RFEs, categorized by component, priority, coverage, and votes. Triggers on: /rfe:report, "RFE report", "prioritization report", "RFE summary", "RFE prioritization"
+description: "Generate a prioritization report across all open RFEs, categorized by component, priority, coverage, and votes. Triggers on: /rfe:report, \"RFE report\", \"prioritization report\", \"RFE summary\", \"RFE prioritization\""
 argument-hint: "[component:<name>] [status:<value>] [output:<path>]"
 ---
 

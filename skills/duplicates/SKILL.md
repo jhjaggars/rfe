@@ -1,6 +1,6 @@
 ---
 name: duplicates
-description: Scan open RFEs for duplicates, cluster similar requests, and recommend which to close. Triggers on: /rfe:duplicates, "find duplicate RFEs", "deduplicate RFEs", "identify duplicate feature requests", "which RFEs are duplicates"
+description: "Scan open RFEs for duplicates, cluster similar requests, and recommend which to close. Triggers on: /rfe:duplicates, \"find duplicate RFEs\", \"deduplicate RFEs\", \"identify duplicate feature requests\", \"which RFEs are duplicates\""
 argument-hint: "[component:<name>] [status:<value>] [period:<months>] [limit:<n>]"
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: triage
-description: Browse and discover RFEs (Feature Requests) in JIRA, classify them by Feature coverage, and select one to hand off to /rfe:decompose. Triggers on: /rfe:triage, "triage RFEs", "browse RFEs", "find RFEs", "discover feature requests", "show open RFEs", "which RFEs need features"
+description: "Browse and discover RFEs (Feature Requests) in JIRA, classify them by Feature coverage, and select one to hand off to /rfe:decompose. Triggers on: /rfe:triage, \"triage RFEs\", \"browse RFEs\", \"find RFEs\", \"discover feature requests\", \"show open RFEs\", \"which RFEs need features\""
 argument-hint: "[status:<value>] [component:<name>] [priority:<level>] [label:<tag>] [text:<keywords>] [limit:<n>]"
 ---
 

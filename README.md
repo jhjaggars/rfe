@@ -13,8 +13,9 @@ A Claude Code plugin with skills for triaging RFEs and decomposing them into wel
 
 - **python3** — standard on macOS; install via `brew install python3` if missing
 - **uv** — install via `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- **JIRA API Token** — generated at [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
-- **JIRA_USER** — your Red Hat email address (used for Basic auth)
+- **JIRA_URL** — base URL of your Jira instance (e.g. `https://redhat.atlassian.net`)
+- **JIRA_API_TOKEN** — generated at [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+- **JIRA_USER** — your email address (used for Basic auth)
 
 Run `/rfe:init` to have Claude check and install prerequisites and walk you through token setup automatically.
 
@@ -152,7 +153,7 @@ Example output after creation:
 
 | Key | Summary | Project | Link |
 |-----|---------|---------|------|
-| ROSA-456 | Auto-scaling for managed clusters | ROSA | https://redhat.atlassian.net/jira/browse/ROSA-456 |
+| ROSA-456 | Auto-scaling for managed clusters | ROSA | $JIRA_URL/jira/browse/ROSA-456 |
 
 Links created:
 - ROSA-456 Implements OCPSTRAT-2666

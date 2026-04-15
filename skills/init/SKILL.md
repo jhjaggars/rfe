@@ -52,29 +52,31 @@ Re-verify with `uv --version`. If it still fails, stop and tell the user:
 
 ## Phase 2: Configure JIRA Access
 
-Check whether `JIRA_API_TOKEN` and `JIRA_USER` are set:
+Check whether `JIRA_URL`, `JIRA_API_TOKEN`, and `JIRA_USER` are set:
 
 ```bash
+echo "JIRA_URL=${JIRA_URL:+set}"
 echo "JIRA_API_TOKEN=${JIRA_API_TOKEN:+set}"
 echo "JIRA_USER=${JIRA_USER:+set}"
 ```
 
-- If both are `set` → skip to Phase 3.
-- If either is missing → guide the user through setup.
+- If all three are `set` → skip to Phase 3.
+- If any are missing → guide the user through setup.
 
 ### Collecting credentials
 
 Tell the user:
 
-> To use the rfe plugin you need an API token and your email address for Atlassian Cloud.
+> To use the rfe plugin you need the Jira base URL, an API token, and your email address.
 >
 > Steps:
-> 1. Go to https://id.atlassian.com/manage-profile/security/api-tokens
-> 2. Click **Create API token**, give it a name (e.g. `claude-code`)
-> 3. Copy the token — you won't see it again
-> 4. Your JIRA_USER is the email address you use to log in to redhat.atlassian.net
+> 1. Your JIRA_URL is the base URL of your Jira instance (e.g. `https://redhat.atlassian.net`)
+> 2. Go to https://id.atlassian.com/manage-profile/security/api-tokens
+> 3. Click **Create API token**, give it a name (e.g. `claude-code`)
+> 4. Copy the token — you won't see it again
+> 5. Your JIRA_USER is the email address you use to log in to Jira
 
-Then use `AskUserQuestion` to collect the token value (if missing) and email (if missing).
+Then use `AskUserQuestion` to collect the Jira URL (if missing), token value (if missing), and email (if missing).
 
 Once collected:
 
@@ -85,6 +87,7 @@ Once collected:
 2. Append the exports to the profile file:
 
 ```bash
+echo 'export JIRA_URL="<URL>"' >> ~/.zshrc
 echo 'export JIRA_API_TOKEN="<TOKEN>"' >> ~/.zshrc
 echo 'export JIRA_USER="<EMAIL>"' >> ~/.zshrc
 ```
@@ -92,6 +95,7 @@ echo 'export JIRA_USER="<EMAIL>"' >> ~/.zshrc
 3. Export them in the current session:
 
 ```bash
+export JIRA_URL="<URL>"
 export JIRA_API_TOKEN="<TOKEN>"
 export JIRA_USER="<EMAIL>"
 ```
@@ -117,7 +121,7 @@ uv run --with requests python3 <SKILL_BASE_DIR>/../../skills/triage/scripts/rfe-
 - If it returns an authentication error (401/403) → tell the user:
   > "The JIRA API token was rejected. Check that it hasn't expired and that it was copied correctly. Re-run `/rfe:init` to enter a new token."
 - If it returns a network error → tell the user:
-  > "Could not reach https://redhat.atlassian.net/jira. Check your network connection and try again."
+  > "Could not reach $JIRA_URL. Check your network connection and try again."
 
 ---
 
@@ -130,6 +134,7 @@ rfe setup check
 ───────────────────────────────────
   python3          ✓  3.x.y
   uv               ✓  x.y.z
+  JIRA_URL         ✓  configured
   JIRA_API_TOKEN   ✓  configured
   JIRA_USER        ✓  configured
   JIRA access      ✓  REST API reachable

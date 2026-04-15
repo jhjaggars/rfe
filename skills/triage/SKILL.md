@@ -83,18 +83,10 @@ Found <N> RFEs  (showing <shown>, <total> total matches)
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests, json
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<KEY>'
-
-resp = requests.get(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}',
-    auth=(email, token)
-)
-resp.raise_for_status()
-d = resp.json()
+d = jira.get_issue('<KEY>')
 f = d['fields']
 print('Key:', d['key'])
 print('Summary:', f.get('summary'))

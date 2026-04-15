@@ -80,34 +80,19 @@ Features start in `New` when the need is identified, move to `Refinement` when a
 
 ```python
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-
-payload = {
-    "fields": {
-        "project": {"key": "OCPSTRAT"},
-        "summary": "Feature summary here",
-        "description": "h2. Market Problem\n\n...",  # Jira wiki markup — use h2. for sections
-        "issuetype": {"name": "Feature"},
-        "customfield_12310031": [{"value": "Red Hat Employee"}],  # security
-        "labels": ["ai-generated-jira"],
-    }
-}
-
-resp = requests.post(
-    'https://redhat.atlassian.net/rest/api/3/issue',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json=payload
-)
-if resp.ok:
-    key = resp.json()['key']
-    print(f"Created: {key}")
-    print(f"URL: https://redhat.atlassian.net/jira/browse/{key}")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+key = jira.create_issue({
+    "project": {"key": "OCPSTRAT"},
+    "summary": "Feature summary here",
+    "description": "h2. Market Problem\n\n...",  # Jira wiki markup — use h2. for sections
+    "issuetype": {"name": "Feature"},
+    "customfield_12310031": [{"value": "Red Hat Employee"}],  # security
+    "labels": ["ai-generated-jira"],
+})
+print(f"Created: {key}")
+print(f"URL: {jira.browse_url(key)}")
 EOF
 ```
 
@@ -115,25 +100,11 @@ EOF
 
 ```python
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-
-resp = requests.post(
-    'https://redhat.atlassian.net/rest/api/3/issueLink',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json={
-        "type": {"name": "Implements"},
-        "inwardIssue": {"key": "<FEATURE-KEY>"},
-        "outwardIssue": {"key": "<OUTCOME-KEY>"}
-    }
-)
-if resp.ok:
-    print("Link created")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+jira.link_issues('Implements', '<FEATURE-KEY>', '<OUTCOME-KEY>')
+print("Link created")
 EOF
 ```
 

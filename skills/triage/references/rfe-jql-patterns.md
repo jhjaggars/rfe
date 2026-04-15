@@ -127,7 +127,7 @@ ORDER BY votes DESC, created DESC
 ## REST API Search Endpoint
 
 ```
-GET https://redhat.atlassian.net/rest/api/3/search
+GET $JIRA_URL/rest/api/3/search
 ```
 
 **Query parameters:**
@@ -149,22 +149,11 @@ summary,status,priority,components,labels,votes,created,updated,issuelinks,descr
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-resp = requests.get(
-    'https://redhat.atlassian.net/rest/api/3/search',
-    auth=(email, token),
-    params={
-        'jql': jql,
-        'maxResults': 50,
-        'fields': 'summary,status,priority,components,labels,votes,created,updated,issuelinks,description'
-    }
-)
-data = resp.json()
-# data['total']  — total matching issues
-# data['issues'] — list of issue objects
+issues = jira.search(jql, max_results=50)
+# issues — list of issue dicts
 EOF
 ```
 

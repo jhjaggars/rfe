@@ -151,18 +151,10 @@ Use AskUserQuestion to present these options.
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<KEY>'
-
-resp = requests.get(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/transitions',
-    auth=(email, token)
-)
-resp.raise_for_status()
-for t in resp.json().get('transitions', []):
+for t in jira.get_transitions('<KEY>'):
     print(f"  {t['id']}  {t['name']}")
 EOF
 ```
@@ -173,25 +165,11 @@ Find the transition ID for "Close" (or equivalent terminal transition).
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-
-resp = requests.post(
-    'https://redhat.atlassian.net/rest/api/3/issueLink',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json={
-        "type": {"name": "Duplicate"},
-        "inwardIssue": {"key": "<DUPLICATE-KEY>"},
-        "outwardIssue": {"key": "<CANONICAL-KEY>"}
-    }
-)
-if resp.ok:
-    print("Linked: <DUPLICATE-KEY> duplicates <CANONICAL-KEY>")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+jira.link_issues('Duplicate', '<DUPLICATE-KEY>', '<CANONICAL-KEY>')
+print("Linked: <DUPLICATE-KEY> duplicates <CANONICAL-KEY>")
 EOF
 ```
 
@@ -199,23 +177,12 @@ EOF
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<DUPLICATE-KEY>'
 canonical = '<CANONICAL-KEY>'
-
-resp = requests.post(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/comment',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json={"body": f"Closing as duplicate of {canonical}, which has higher vote count and represents the same capability request. Customer signal is consolidated there."}
-)
-if resp.ok:
-    print("Comment added")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+jira.add_comment('<DUPLICATE-KEY>', f"Closing as duplicate of {canonical}, which has higher vote count and represents the same capability request. Customer signal is consolidated there.")
+print("Comment added")
 EOF
 ```
 
@@ -223,23 +190,11 @@ EOF
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<DUPLICATE-KEY>'
-transition_id = '<TRANSITION-ID>'  # from Step 1
-
-resp = requests.post(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/transitions',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json={"transition": {"id": transition_id}}
-)
-if resp.ok:
-    print(f"Closed: {key}")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+jira.transition_issue('<DUPLICATE-KEY>', '<TRANSITION-ID>')
+print("Closed: <DUPLICATE-KEY>")
 EOF
 ```
 

@@ -67,26 +67,18 @@ For each RFE (or in batches), extract 2–4 keyword phrases from the `summary` a
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
 keywords = '<KEYWORD-PHRASE>'
 project = '<PROJECT>'  # e.g. OCPSTRAT, XCMSTRAT, ROSA, CLID, CFEPLAN
-
 jql = (
     f'project = {project} AND issuetype in (Feature, Story, Initiative) '
     f'AND text ~ "{keywords}" AND status in (Done, Closed, Released) '
     f'ORDER BY updated DESC'
 )
 
-resp = requests.get(
-    'https://redhat.atlassian.net/rest/api/3/search',
-    auth=(email, token),
-    params={'jql': jql, 'fields': 'summary,status,issuetype,fixVersions', 'maxResults': 10}
-)
-resp.raise_for_status()
-issues = resp.json().get('issues', [])
+issues = jira.search(jql, fields='summary,status,issuetype,fixVersions', max_results=10)
 if issues:
     for i in issues:
         f = i['fields']
@@ -187,15 +179,10 @@ Ask the user how to proceed using AskUserQuestion with up to 4 options:
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<KEY>'
-resp = requests.get(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/transitions',
-    auth=(email, token)
-)
-for t in resp.json().get('transitions', []):
+import sys; sys.path.insert(0, 'scripts')
+import jira
+
+for t in jira.get_transitions('<KEY>'):
     print(f"  {t['id']}  {t['name']}")
 EOF
 ```
@@ -206,23 +193,11 @@ Find the transition ID for "Close" (or terminal state). If a resolution field is
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-resp = requests.post(
-    'https://redhat.atlassian.net/rest/api/3/issueLink',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json={
-        "type": {"name": "is implemented by"},
-        "inwardIssue": {"key": "<FEATURE-KEY>"},
-        "outwardIssue": {"key": "<RFE-KEY>"}
-    }
-)
-if resp.ok:
-    print("Linked")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+import sys; sys.path.insert(0, 'scripts')
+import jira
+
+jira.link_issues('is implemented by', '<FEATURE-KEY>', '<RFE-KEY>')
+print("Linked")
 EOF
 ```
 
@@ -230,22 +205,12 @@ EOF
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<RFE-KEY>'
-feature = '<FEATURE-KEY>'
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-resp = requests.post(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/comment',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json={"body": f"Closing as this capability was delivered in {feature}. The requested functionality is now available in the product. If you believe something is still missing, please open a new RFE with specific details."}
-)
-if resp.ok:
-    print("Comment added")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+feature = '<FEATURE-KEY>'
+jira.add_comment('<RFE-KEY>', f"Closing as this capability was delivered in {feature}. The requested functionality is now available in the product. If you believe something is still missing, please open a new RFE with specific details.")
+print("Comment added")
 EOF
 ```
 
@@ -253,26 +218,12 @@ EOF
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<RFE-KEY>'
-transition_id = '<TRANSITION-ID>'
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-body = {"transition": {"id": transition_id}}
-# If the transition requires a resolution, add: "resolution": {"name": "Done"}
-# body["fields"] = {"resolution": {"name": "Done"}}
-
-resp = requests.post(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/transitions',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json=body
-)
-if resp.ok:
-    print(f"Closed: {key}")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+jira.transition_issue('<RFE-KEY>', '<TRANSITION-ID>')
+# If a resolution is required: jira.transition_issue('<RFE-KEY>', '<TRANSITION-ID>', resolution='Done')
+print("Closed: <RFE-KEY>")
 EOF
 ```
 

@@ -57,11 +57,11 @@ For each key, run these steps:
 Clean any stale data, then fetch the issue:
 
 ```bash
-JIRA_SERVER=https://redhat.atlassian.net python3 .context/assess-rfe/scripts/prep_single.py <KEY>
+JIRA_SERVER="$JIRA_URL" python3 .context/assess-rfe/scripts/prep_single.py <KEY>
 ```
 
 ```bash
-JIRA_SERVER=https://redhat.atlassian.net python3 .context/assess-rfe/scripts/fetch_single.py <KEY>
+JIRA_SERVER="$JIRA_URL" python3 .context/assess-rfe/scripts/fetch_single.py <KEY>
 ```
 
 The fetch script uses `JIRA_USER` and `JIRA_API_TOKEN` from the environment (both are supported by the upstream script). It writes the issue to `/tmp/rfe-assess/single/<KEY>.md`.

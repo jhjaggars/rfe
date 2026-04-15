@@ -22,18 +22,10 @@ Read these reference files now before proceeding:
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<KEY>'
-
-resp = requests.get(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}',
-    auth=(email, token)
-)
-resp.raise_for_status()
-d = resp.json()
+d = jira.get_issue('<KEY>')
 f = d['fields']
 print('Summary:', f.get('summary'))
 print('Type:', f['issuetype']['name'])
@@ -62,18 +54,10 @@ Cap at 10 linked issues. For each:
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<LINKED-KEY>'
-
-resp = requests.get(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}',
-    auth=(email, token)
-)
-resp.raise_for_status()
-d = resp.json()
+d = jira.get_issue('<LINKED-KEY>')
 f = d['fields']
 print('Key:', d['key'])
 print('Summary:', f.get('summary'))
@@ -118,22 +102,14 @@ Before drafting anything, search for existing Features and Initiatives that may 
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
 project = '<PROJECT>'  # e.g. OCPSTRAT, XCMSTRAT, ROSA, etc.
 keywords = '<KEYWORD>'  # key terms from the RFE summary
-
 jql = f'project = {project} AND issuetype in (Feature, Initiative) AND text ~ "{keywords}" AND status != Closed ORDER BY updated DESC'
 
-resp = requests.get(
-    'https://redhat.atlassian.net/rest/api/3/search',
-    auth=(email, token),
-    params={'jql': jql, 'fields': 'summary,status,issuetype', 'maxResults': 20}
-)
-resp.raise_for_status()
-for issue in resp.json().get('issues', []):
+for issue in jira.search(jql, fields='summary,status,issuetype', max_results=20):
     f = issue['fields']
     print(f"{issue['key']} [{f['issuetype']['name']}] ({f['status']['name']}) {f['summary']}")
 EOF
@@ -219,34 +195,19 @@ Use the payload from the matching template reference (`feature-definition.md` fo
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-
-payload = {
-    "fields": {
-        "project": {"key": "<PROJECT>"},
-        "summary": "<SUMMARY>",
-        "description": """<WIKI MARKUP BODY>""",
-        "issuetype": {"name": "<Feature|Initiative|Outcome>"},
-        "customfield_12310031": [{"value": "Red Hat Employee"}],  # security — required
-        "labels": ["ai-generated-jira"],                          # required for AI-created issues
-    }
-}
-
-resp = requests.post(
-    'https://redhat.atlassian.net/rest/api/3/issue',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json=payload
-)
-
-if resp.ok:
-    key = resp.json()['key']
-    print(f"Created: {key}")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+key = jira.create_issue({
+    "project": {"key": "<PROJECT>"},
+    "summary": "<SUMMARY>",
+    "description": """<WIKI MARKUP BODY>""",
+    "issuetype": {"name": "<Feature|Initiative|Outcome>"},
+    "customfield_12310031": [{"value": "Red Hat Employee"}],  # security — required
+    "labels": ["ai-generated-jira"],                          # required for AI-created issues
+})
+print(f"Created: {key}")
+print(f"URL: {jira.browse_url(key)}")
 EOF
 ```
 
@@ -254,21 +215,11 @@ EOF
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-
-resp = requests.post(
-    'https://redhat.atlassian.net/rest/api/3/issueLink',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json={"type": {"name": "Implements"}, "inwardIssue": {"key": "<NEW-KEY>"}, "outwardIssue": {"key": "<SOURCE-KEY>"}}
-)
-if resp.ok:
-    print("Link created: <NEW-KEY> Implements <SOURCE-KEY>")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+jira.link_issues('Implements', '<NEW-KEY>', '<SOURCE-KEY>')
+print("Link created: <NEW-KEY> Implements <SOURCE-KEY>")
 EOF
 ```
 
@@ -276,21 +227,11 @@ EOF
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-
-resp = requests.post(
-    'https://redhat.atlassian.net/rest/api/3/issueLink',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json={"type": {"name": "is implemented by"}, "inwardIssue": {"key": "<NEW-KEY>"}, "outwardIssue": {"key": "<OUTCOME-KEY>"}}
-)
-if resp.ok:
-    print("Link created: <NEW-KEY> is implemented by <OUTCOME-KEY>")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+jira.link_issues('is implemented by', '<NEW-KEY>', '<OUTCOME-KEY>')
+print("Link created: <NEW-KEY> is implemented by <OUTCOME-KEY>")
 EOF
 ```
 
@@ -301,8 +242,8 @@ EOF
 
 | Key | Type | Summary | Project | Link |
 |-----|------|---------|---------|------|
-| ROSA-456 | Feature | ... | ROSA | https://redhat.atlassian.net/jira/browse/ROSA-456 |
-| ROSA-457 | Initiative | ... | ROSA | https://redhat.atlassian.net/jira/browse/ROSA-457 |
+| ROSA-456 | Feature | ... | ROSA | $JIRA_URL/jira/browse/ROSA-456 |
+| ROSA-457 | Initiative | ... | ROSA | $JIRA_URL/jira/browse/ROSA-457 |
 
 Links created:
 - ROSA-456 Implements OCPSTRAT-2666

@@ -1,6 +1,6 @@
 # Jira Wiki Markup Reference
 
-Use this syntax when writing Feature, Initiative, and Outcome descriptions for redhat.atlassian.net/jira. **Never use Markdown** (no `#`, `**`, `-`, `` ``` ``) — Jira does not render it.
+Use this syntax when writing Feature, Initiative, and Outcome descriptions for the Jira instance at `$JIRA_URL`. **Never use Markdown** (no `#`, `**`, `-`, `` ``` ``) — Jira does not render it.
 
 Source: openshift-eng/ai-helpers jira plugin.
 

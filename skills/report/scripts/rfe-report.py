@@ -8,60 +8,28 @@ Reads RFEs from JIRA (via the same API as rfe-search.py), categorizes them,
 and writes a markdown prioritization report to stdout or a file.
 
 Environment:
-    JIRA_API_TOKEN  API token for redhat.atlassian.net
+    JIRA_URL        Jira base URL (e.g. https://redhat.atlassian.net)
+    JIRA_API_TOKEN  API token
     JIRA_USER       Email address for Basic auth (e.g. you@redhat.com)
 """
 
 import argparse
-import json
 import os
 import sys
 from collections import Counter, defaultdict
 from datetime import date
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "scripts"))
+import jira
 
-def fetch_issues(jql, auth, fetch_all=False, limit=25):
+
+def fetch_issues(jql, fetch_all=False, limit=25):
     """Fetch issues from JIRA v3 search API."""
-    import requests
-
     fields = "summary,status,priority,components,labels,votes,created,updated,issuelinks,description"
-
     if fetch_all:
-        issues = []
-        next_page_token = None
-
-        while True:
-            params = {"jql": jql, "maxResults": 100, "fields": fields}
-            if next_page_token:
-                params["nextPageToken"] = next_page_token
-
-            resp = requests.get(
-                "https://redhat.atlassian.net/rest/api/3/search/jql",
-                auth=auth,
-                params=params,
-            )
-            if not resp.ok:
-                print(f"Error {resp.status_code}: {resp.text}", file=sys.stderr)
-                sys.exit(1)
-
-            data = resp.json()
-            issues.extend(data.get("issues", []))
-
-            if data.get("isLast", True) or not data.get("nextPageToken"):
-                break
-            next_page_token = data["nextPageToken"]
-
-        return issues
+        return jira.search_all(jql, fields=fields)
     else:
-        resp = requests.get(
-            "https://redhat.atlassian.net/rest/api/3/search/jql",
-            auth=auth,
-            params={"jql": jql, "maxResults": limit, "fields": fields},
-        )
-        if not resp.ok:
-            print(f"Error {resp.status_code}: {resp.text}", file=sys.stderr)
-            sys.exit(1)
-        return resp.json().get("issues", [])
+        return jira.search(jql, fields=fields, max_results=limit)
 
 
 def extract_text(node):
@@ -429,21 +397,8 @@ def main():
     )
     args = parser.parse_args()
 
-    token = os.environ.get("JIRA_API_TOKEN")
-    email = os.environ.get("JIRA_USER")
-    if not token or not email:
-        missing = []
-        if not token:
-            missing.append("JIRA_API_TOKEN")
-        if not email:
-            missing.append("JIRA_USER")
-        print(f"ERROR: {', '.join(missing)} not set", file=sys.stderr)
-        sys.exit(1)
-
-    auth = (email, token)
-
     print("Fetching RFEs from JIRA...", file=sys.stderr)
-    raw_issues = fetch_issues(args.jql, auth, fetch_all=args.all, limit=args.limit)
+    raw_issues = fetch_issues(args.jql, fetch_all=args.all, limit=args.limit)
     print(f"Fetched {len(raw_issues)} issues, generating report...", file=sys.stderr)
 
     rfes = [normalize_issue(i) for i in raw_issues]

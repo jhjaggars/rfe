@@ -83,18 +83,10 @@ For each RFE in the queue, run through the following steps. Keep session state: 
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests, json
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<KEY>'
-
-resp = requests.get(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}',
-    auth=(email, token)
-)
-resp.raise_for_status()
-d = resp.json()
+d = jira.get_issue('<KEY>')
 f = d['fields']
 print('Key:', d['key'])
 print('Summary:', f.get('summary'))
@@ -198,23 +190,11 @@ Then pause — wait for the user to run that command and return before continuin
 
 ```bash
 uv run --with requests python3 - << 'EOF'
-import os, requests
+import sys; sys.path.insert(0, 'scripts')
+import jira
 
-token = os.environ['JIRA_API_TOKEN']
-email = os.environ['JIRA_USER']
-key = '<KEY>'
-comment = '<COMMENT-TEXT>'
-
-resp = requests.post(
-    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/comment',
-    auth=(email, token),
-    headers={'Content-Type': 'application/json'},
-    json={"body": comment}
-)
-if resp.ok:
-    print(f"Comment added to {key}")
-else:
-    print(f"Error {resp.status_code}: {resp.text}")
+jira.add_comment('<KEY>', '<COMMENT-TEXT>')
+print("Comment added to <KEY>")
 EOF
 ```
 

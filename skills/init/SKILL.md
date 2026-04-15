@@ -52,29 +52,29 @@ Re-verify with `uv --version`. If it still fails, stop and tell the user:
 
 ## Phase 2: Configure JIRA Access
 
-Check whether `JIRA_API_TOKEN` is set:
+Check whether `JIRA_API_TOKEN` and `JIRA_USER` are set:
 
 ```bash
-echo "${JIRA_API_TOKEN:+set}"
+echo "JIRA_API_TOKEN=${JIRA_API_TOKEN:+set}"
+echo "JIRA_USER=${JIRA_USER:+set}"
 ```
 
-- If the output is `set` → the token is already configured. Skip to Phase 3.
-- If the output is empty → guide the user through creating one.
+- If both are `set` → skip to Phase 3.
+- If either is missing → guide the user through setup.
 
-### Collecting the token
+### Collecting credentials
 
 Tell the user:
 
-> To use the rfe plugin you need a Personal Access Token from https://redhat.atlassian.net/jira.
+> To use the rfe plugin you need an API token and your email address for Atlassian Cloud.
 >
 > Steps:
-> 1. Log in to https://redhat.atlassian.net/jira
-> 2. Click your profile avatar (top right) → **Profile**
-> 3. In the left sidebar, click **Personal Access Tokens**
-> 4. Click **Create token**, give it a name (e.g. `claude-code`), and set an expiry
-> 5. Copy the token — you won't see it again
+> 1. Go to https://id.atlassian.com/manage-profile/security/api-tokens
+> 2. Click **Create API token**, give it a name (e.g. `claude-code`)
+> 3. Copy the token — you won't see it again
+> 4. Your JIRA_USER is the email address you use to log in to redhat.atlassian.net
 
-Then use `AskUserQuestion` to collect the token value.
+Then use `AskUserQuestion` to collect the token value (if missing) and email (if missing).
 
 Once collected:
 
@@ -82,20 +82,22 @@ Once collected:
    - `~/.zshrc` (if `$SHELL` contains `zsh` or if the file exists)
    - `~/.bashrc` (fallback)
 
-2. Append the export to the profile file:
+2. Append the exports to the profile file:
 
 ```bash
 echo 'export JIRA_API_TOKEN="<TOKEN>"' >> ~/.zshrc
+echo 'export JIRA_USER="<EMAIL>"' >> ~/.zshrc
 ```
 
-3. Export it in the current session:
+3. Export them in the current session:
 
 ```bash
 export JIRA_API_TOKEN="<TOKEN>"
+export JIRA_USER="<EMAIL>"
 ```
 
 4. Tell the user:
-> Token saved to `~/.zshrc`. It will be available automatically in new shell sessions. For the current session it has already been exported.
+> Credentials saved to `~/.zshrc`. They will be available automatically in new shell sessions. For the current session they have already been exported.
 
 ---
 
@@ -129,6 +131,7 @@ rfe setup check
   python3          ✓  3.x.y
   uv               ✓  x.y.z
   JIRA_API_TOKEN   ✓  configured
+  JIRA_USER        ✓  configured
   JIRA access      ✓  REST API reachable
 ───────────────────────────────────
 All checks passed. You're ready to use the rfe plugin.

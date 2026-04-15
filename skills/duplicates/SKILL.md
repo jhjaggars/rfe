@@ -154,11 +154,12 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<KEY>'
 
 resp = requests.get(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/transitions',
-    headers={'Authorization': f'Bearer {token}'}
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/transitions',
+    auth=(email, token)
 )
 resp.raise_for_status()
 for t in resp.json().get('transitions', []):
@@ -175,10 +176,12 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 
 resp = requests.post(
-    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    'https://redhat.atlassian.net/rest/api/3/issueLink',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json={
         "type": {"name": "Duplicate"},
         "inwardIssue": {"key": "<DUPLICATE-KEY>"},
@@ -199,12 +202,14 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<DUPLICATE-KEY>'
 canonical = '<CANONICAL-KEY>'
 
 resp = requests.post(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/comment',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/comment',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json={"body": f"Closing as duplicate of {canonical}, which has higher vote count and represents the same capability request. Customer signal is consolidated there."}
 )
 if resp.ok:
@@ -221,12 +226,14 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<DUPLICATE-KEY>'
 transition_id = '<TRANSITION-ID>'  # from Step 1
 
 resp = requests.post(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/transitions',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/transitions',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json={"transition": {"id": transition_id}}
 )
 if resp.ok:
@@ -248,7 +255,7 @@ Closed <N> duplicate RFEs. Canonical issues retained:
 
 ## Error Handling
 
-- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running."
+- **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **Transition not found:** List all available transitions and ask the user which to use.
 - **No duplicates found:** Report the scan scope and note that the dataset appears deduplicated.
-- **Link type "Duplicate" rejected:** Try `"Duplicates"` or `"is duplicate of"` — link type names vary by instance. Fetch available types from `GET /rest/api/2/issueLinkType` if needed.
+- **Link type "Duplicate" rejected:** Try `"Duplicates"` or `"is duplicate of"` — link type names vary by instance. Fetch available types from `GET /rest/api/3/issueLinkType` if needed.

@@ -70,6 +70,7 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 keywords = '<KEYWORD-PHRASE>'
 project = '<PROJECT>'  # e.g. OCPSTRAT, XCMSTRAT, ROSA, CLID, CFEPLAN
 
@@ -80,8 +81,8 @@ jql = (
 )
 
 resp = requests.get(
-    'https://redhat.atlassian.net/jira/rest/api/2/search',
-    headers={'Authorization': f'Bearer {token}'},
+    'https://redhat.atlassian.net/rest/api/3/search',
+    auth=(email, token),
     params={'jql': jql, 'fields': 'summary,status,issuetype,fixVersions', 'maxResults': 10}
 )
 resp.raise_for_status()
@@ -188,10 +189,11 @@ Ask the user how to proceed using AskUserQuestion with up to 4 options:
 uv run --with requests python3 - << 'EOF'
 import os, requests
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<KEY>'
 resp = requests.get(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/transitions',
-    headers={'Authorization': f'Bearer {token}'}
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/transitions',
+    auth=(email, token)
 )
 for t in resp.json().get('transitions', []):
     print(f"  {t['id']}  {t['name']}")
@@ -206,9 +208,11 @@ Find the transition ID for "Close" (or terminal state). If a resolution field is
 uv run --with requests python3 - << 'EOF'
 import os, requests
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 resp = requests.post(
-    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    'https://redhat.atlassian.net/rest/api/3/issueLink',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json={
         "type": {"name": "is implemented by"},
         "inwardIssue": {"key": "<FEATURE-KEY>"},
@@ -228,12 +232,14 @@ EOF
 uv run --with requests python3 - << 'EOF'
 import os, requests
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<RFE-KEY>'
 feature = '<FEATURE-KEY>'
 
 resp = requests.post(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/comment',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/comment',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json={"body": f"Closing as this capability was delivered in {feature}. The requested functionality is now available in the product. If you believe something is still missing, please open a new RFE with specific details."}
 )
 if resp.ok:
@@ -249,6 +255,7 @@ EOF
 uv run --with requests python3 - << 'EOF'
 import os, requests
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<RFE-KEY>'
 transition_id = '<TRANSITION-ID>'
 
@@ -257,8 +264,9 @@ body = {"transition": {"id": transition_id}}
 # body["fields"] = {"resolution": {"name": "Done"}}
 
 resp = requests.post(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/transitions',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/transitions',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json=body
 )
 if resp.ok:
@@ -274,7 +282,7 @@ Print a final closure summary when done.
 
 ## Error Handling
 
-- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running."
+- **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **Transition requires resolution field:** Try adding `"fields": {"resolution": {"name": "Done"}}` to the transition payload.
 - **No orphans found:** Report the scan scope. If no shipped matches were found, the component's RFEs may genuinely be undelivered — this is useful signal too.
 - **Too many RFEs to search individually:** Prioritize the oldest and lowest-vote RFEs for orphan checking; skip RFEs with >5 votes (high-vote RFEs are unlikely to have shipped without notice).

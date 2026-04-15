@@ -86,11 +86,12 @@ uv run --with requests python3 - << 'EOF'
 import os, requests, json
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<KEY>'
 
 resp = requests.get(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}',
-    headers={'Authorization': f'Bearer {token}'}
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}',
+    auth=(email, token)
 )
 resp.raise_for_status()
 d = resp.json()
@@ -138,7 +139,7 @@ To create Features from this RFE, run:
 
 ## Error Handling
 
-- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running. Generate a PAT at https://redhat.atlassian.net/jira/secure/ViewProfile.jspa under Personal Access Tokens."
+- **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **No results returned:** Report the JQL used and suggest relaxing filters (e.g., drop `priority`, broaden `status`, remove `text` filter).
 - **REST API 400 with "value does not exist for field 'status'":** The JQL contains a status name that doesn't exist in this project. Use `AND status not in ("Closed")` instead of listing open statuses explicitly. See `references/rfe-jql-patterns.md` for the verified status values.
 - **REST API error (other):** Show the status code and response body, then ask whether to retry with modified parameters.

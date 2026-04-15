@@ -127,7 +127,7 @@ ORDER BY votes DESC, created DESC
 ## REST API Search Endpoint
 
 ```
-GET https://redhat.atlassian.net/jira/rest/api/2/search
+GET https://redhat.atlassian.net/rest/api/3/search
 ```
 
 **Query parameters:**
@@ -145,19 +145,17 @@ GET https://redhat.atlassian.net/jira/rest/api/2/search
 summary,status,priority,components,labels,votes,created,updated,issuelinks,description
 ```
 
-**Authentication:** Bearer token from `$JIRA_API_TOKEN`.
+**Authentication:** Basic auth using `$JIRA_USER` (email) and `$JIRA_API_TOKEN`.
 
 ```bash
 uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 resp = requests.get(
-    'https://redhat.atlassian.net/jira/rest/api/2/search',
-    headers={
-        'Authorization': f'Bearer {token}',
-        'Content-Type': 'application/json'
-    },
+    'https://redhat.atlassian.net/rest/api/3/search',
+    auth=(email, token),
     params={
         'jql': jql,
         'maxResults': 50,

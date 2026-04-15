@@ -5,7 +5,8 @@ Usage:
     uv run --with requests python3 rfe-search.py --jql "..." [--limit N] [--all]
 
 Environment:
-    JIRA_API_TOKEN  Personal Access Token for redhat.atlassian.net/jira
+    JIRA_API_TOKEN  API token for redhat.atlassian.net
+    JIRA_USER       Email address for Basic auth (e.g. you@redhat.com)
 
 Output:
     Line 1: summary header  "Total matches: N (showing M)"
@@ -35,21 +36,25 @@ def main():
     args = parser.parse_args()
 
     token = os.environ.get("JIRA_API_TOKEN")
-    if not token:
-        print("ERROR: JIRA_API_TOKEN not set", file=sys.stderr)
-        print("Set:      export JIRA_API_TOKEN=<your-PAT>", file=sys.stderr)
+    email = os.environ.get("JIRA_USER")
+    if not token or not email:
+        missing = []
+        if not token:
+            missing.append("JIRA_API_TOKEN")
+        if not email:
+            missing.append("JIRA_USER")
+        print(f"ERROR: {', '.join(missing)} not set", file=sys.stderr)
+        print("Set:      export JIRA_API_TOKEN=<your-token>", file=sys.stderr)
+        print("          export JIRA_USER=<your-email@redhat.com>", file=sys.stderr)
         print(
-            "Generate: https://redhat.atlassian.net/jira/secure/ViewProfile.jspa",
+            "Generate: https://id.atlassian.com/manage-profile/security/api-tokens",
             file=sys.stderr,
         )
         sys.exit(1)
 
     import requests
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    }
+    auth = (email, token)
     fields = "summary,status,priority,components,labels,votes,created,updated,issuelinks,description"
 
     if args.all:
@@ -67,8 +72,8 @@ def main():
                 params["nextPageToken"] = next_page_token
 
             resp = requests.get(
-                "https://redhat.atlassian.net/jira/rest/api/3/search/jql",
-                headers=headers,
+                "https://redhat.atlassian.net/rest/api/3/search/jql",
+                auth=auth,
                 params=params,
             )
 
@@ -87,8 +92,8 @@ def main():
                 break
     else:
         resp = requests.get(
-            "https://redhat.atlassian.net/jira/rest/api/3/search/jql",
-            headers=headers,
+            "https://redhat.atlassian.net/rest/api/3/search/jql",
+            auth=auth,
             params={
                 "jql": args.jql,
                 "maxResults": args.limit,

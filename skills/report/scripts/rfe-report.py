@@ -8,7 +8,8 @@ Reads RFEs from JIRA (via the same API as rfe-search.py), categorizes them,
 and writes a markdown prioritization report to stdout or a file.
 
 Environment:
-    JIRA_API_TOKEN  Personal Access Token for redhat.atlassian.net/jira
+    JIRA_API_TOKEN  API token for redhat.atlassian.net
+    JIRA_USER       Email address for Basic auth (e.g. you@redhat.com)
 """
 
 import argparse
@@ -19,14 +20,10 @@ from collections import Counter, defaultdict
 from datetime import date
 
 
-def fetch_issues(jql, token, fetch_all=False, limit=25):
+def fetch_issues(jql, auth, fetch_all=False, limit=25):
     """Fetch issues from JIRA v3 search API."""
     import requests
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    }
     fields = "summary,status,priority,components,labels,votes,created,updated,issuelinks,description"
 
     if fetch_all:
@@ -39,8 +36,8 @@ def fetch_issues(jql, token, fetch_all=False, limit=25):
                 params["nextPageToken"] = next_page_token
 
             resp = requests.get(
-                "https://redhat.atlassian.net/jira/rest/api/3/search/jql",
-                headers=headers,
+                "https://redhat.atlassian.net/rest/api/3/search/jql",
+                auth=auth,
                 params=params,
             )
             if not resp.ok:
@@ -57,8 +54,8 @@ def fetch_issues(jql, token, fetch_all=False, limit=25):
         return issues
     else:
         resp = requests.get(
-            "https://redhat.atlassian.net/jira/rest/api/3/search/jql",
-            headers=headers,
+            "https://redhat.atlassian.net/rest/api/3/search/jql",
+            auth=auth,
             params={"jql": jql, "maxResults": limit, "fields": fields},
         )
         if not resp.ok:
@@ -433,12 +430,20 @@ def main():
     args = parser.parse_args()
 
     token = os.environ.get("JIRA_API_TOKEN")
-    if not token:
-        print("ERROR: JIRA_API_TOKEN not set", file=sys.stderr)
+    email = os.environ.get("JIRA_USER")
+    if not token or not email:
+        missing = []
+        if not token:
+            missing.append("JIRA_API_TOKEN")
+        if not email:
+            missing.append("JIRA_USER")
+        print(f"ERROR: {', '.join(missing)} not set", file=sys.stderr)
         sys.exit(1)
 
+    auth = (email, token)
+
     print("Fetching RFEs from JIRA...", file=sys.stderr)
-    raw_issues = fetch_issues(args.jql, token, fetch_all=args.all, limit=args.limit)
+    raw_issues = fetch_issues(args.jql, auth, fetch_all=args.all, limit=args.limit)
     print(f"Fetched {len(raw_issues)} issues, generating report...", file=sys.stderr)
 
     rfes = [normalize_issue(i) for i in raw_issues]

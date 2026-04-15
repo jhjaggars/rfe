@@ -83,6 +83,7 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 
 payload = {
     "fields": {
@@ -96,8 +97,9 @@ payload = {
 }
 
 resp = requests.post(
-    'https://redhat.atlassian.net/jira/rest/api/2/issue',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    'https://redhat.atlassian.net/rest/api/3/issue',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json=payload
 )
 if resp.ok:
@@ -116,10 +118,12 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 
 resp = requests.post(
-    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    'https://redhat.atlassian.net/rest/api/3/issueLink',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json={
         "type": {"name": "Implements"},
         "inwardIssue": {"key": "<FEATURE-KEY>"},

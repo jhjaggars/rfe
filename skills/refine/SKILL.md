@@ -86,11 +86,12 @@ uv run --with requests python3 - << 'EOF'
 import os, requests, json
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<KEY>'
 
 resp = requests.get(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}',
-    headers={'Authorization': f'Bearer {token}'}
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}',
+    auth=(email, token)
 )
 resp.raise_for_status()
 d = resp.json()
@@ -200,12 +201,14 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<KEY>'
 comment = '<COMMENT-TEXT>'
 
 resp = requests.post(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}/comment',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}/comment',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json={"body": comment}
 )
 if resp.ok:
@@ -250,7 +253,7 @@ Next steps:
 
 ## Error Handling
 
-- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running."
+- **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **Empty queue:** If no RFEs match the filter, report the JQL used and suggest broadening (e.g., include `Backlog` status, drop priority filter).
 - **REST API error on comment/transition:** Show the error and ask whether to retry or skip. Do not abort the session.
 - **User wants to restart queue:** Accept "restart" at any prompt to re-display the queue from the beginning.

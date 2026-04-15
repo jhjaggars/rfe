@@ -25,11 +25,12 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<KEY>'
 
 resp = requests.get(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}',
-    headers={'Authorization': f'Bearer {token}'}
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}',
+    auth=(email, token)
 )
 resp.raise_for_status()
 d = resp.json()
@@ -64,11 +65,12 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 key = '<LINKED-KEY>'
 
 resp = requests.get(
-    f'https://redhat.atlassian.net/jira/rest/api/2/issue/{key}',
-    headers={'Authorization': f'Bearer {token}'}
+    f'https://redhat.atlassian.net/rest/api/3/issue/{key}',
+    auth=(email, token)
 )
 resp.raise_for_status()
 d = resp.json()
@@ -119,14 +121,15 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 project = '<PROJECT>'  # e.g. OCPSTRAT, XCMSTRAT, ROSA, etc.
 keywords = '<KEYWORD>'  # key terms from the RFE summary
 
 jql = f'project = {project} AND issuetype in (Feature, Initiative) AND text ~ "{keywords}" AND status != Closed ORDER BY updated DESC'
 
 resp = requests.get(
-    'https://redhat.atlassian.net/jira/rest/api/2/search',
-    headers={'Authorization': f'Bearer {token}'},
+    'https://redhat.atlassian.net/rest/api/3/search',
+    auth=(email, token),
     params={'jql': jql, 'fields': 'summary,status,issuetype', 'maxResults': 20}
 )
 resp.raise_for_status()
@@ -219,6 +222,7 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 
 payload = {
     "fields": {
@@ -232,8 +236,9 @@ payload = {
 }
 
 resp = requests.post(
-    'https://redhat.atlassian.net/jira/rest/api/2/issue',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    'https://redhat.atlassian.net/rest/api/3/issue',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json=payload
 )
 
@@ -252,10 +257,12 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 
 resp = requests.post(
-    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    'https://redhat.atlassian.net/rest/api/3/issueLink',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json={"type": {"name": "Implements"}, "inwardIssue": {"key": "<NEW-KEY>"}, "outwardIssue": {"key": "<SOURCE-KEY>"}}
 )
 if resp.ok:
@@ -272,10 +279,12 @@ uv run --with requests python3 - << 'EOF'
 import os, requests
 
 token = os.environ['JIRA_API_TOKEN']
+email = os.environ['JIRA_USER']
 
 resp = requests.post(
-    'https://redhat.atlassian.net/jira/rest/api/2/issueLink',
-    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    'https://redhat.atlassian.net/rest/api/3/issueLink',
+    auth=(email, token),
+    headers={'Content-Type': 'application/json'},
     json={"type": {"name": "is implemented by"}, "inwardIssue": {"key": "<NEW-KEY>"}, "outwardIssue": {"key": "<OUTCOME-KEY>"}}
 )
 if resp.ok:
@@ -304,7 +313,7 @@ Links created:
 
 ## Error Handling
 
-- **JIRA_API_TOKEN not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-PAT>` before running. Generate a PAT at https://redhat.atlassian.net/jira/secure/ViewProfile.jspa under Personal Access Tokens."
+- **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **Project routing unclear:** Ask the user which project to use rather than guessing.
 - **REST API 400 / field errors:** Show the error and ask the user whether to retry with modified fields or proceed manually.
 - **Issue not found:** Report the key that failed and continue with the others.

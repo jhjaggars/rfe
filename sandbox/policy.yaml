@@ -1,0 +1,13 @@
+version: 1
+network_policies:
+  jira:
+    name: jira-api
+    endpoints:
+      - host: redhat.atlassian.net
+        port: 443
+        protocol: rest
+        access: read-write
+        enforcement: enforce
+    binaries:
+      - path: /usr/local/bin/acli
+      - path: /usr/bin/curl

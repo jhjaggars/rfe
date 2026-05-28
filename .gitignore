@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 reports/
 deploy/
+sandbox/plugin-files/

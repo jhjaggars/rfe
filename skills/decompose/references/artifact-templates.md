@@ -4,7 +4,7 @@ Templates for Initiative and Outcome issue descriptions. For the Feature templat
 
 All text in `[brackets]` is guidance — replace with real content. Be concise; less detail is preferred over placeholder-heavy descriptions.
 
-**CRITICAL:** Always use the Python REST API (not jira-cli) for issue creation with formatted descriptions. jira-cli corrupts wiki markup. See `feature-definition.md` for the REST API pattern.
+**CRITICAL:** Always use `acli jira workitem create --from-json` for issue creation. Descriptions must be in ADF (Atlassian Document Format), not wiki markup. See `feature-definition.md` for the JSON schema and command pattern.
 
 **Required on all AI-created issues:**
 - `"customfield_12310031": [{"value": "Red Hat Employee"}]` — security field
@@ -62,18 +62,24 @@ h2. Results
 [Add results here once the Initiative is started. Recommend quarterly updates in bullets.]
 ```
 
-### REST API payload for Initiative creation
+### `acli` JSON payload for Initiative creation
 
-```python
-payload = {
-    "fields": {
-        "project": {"key": "<PROJECT>"},          # ROSA, ARO, GCP, HCMPE, CRCPLAN, OCPSTRAT, XCMSTRAT
-        "summary": "<SUMMARY>",
-        "description": """<WIKI MARKUP BODY>""",
-        "issuetype": {"name": "Initiative"},
-        "customfield_12310031": [{"value": "Red Hat Employee"}],  # security field
-        "labels": ["ai-generated-jira"],
-    }
+```json
+{
+  "projectKey": "<PROJECT>",
+  "summary": "<SUMMARY>",
+  "type": "Initiative",
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+      {"type": "paragraph", "content": [{"type": "text", "text": "<overview paragraph>"}]}
+    ]
+  },
+  "labels": ["ai-generated-jira"],
+  "additionalAttributes": {
+    "customfield_12310031": [{"value": "Red Hat Employee"}]
+  }
 }
 ```
 
@@ -101,16 +107,22 @@ h1. Post Completion Review – Actual Results
 [After completing the work, list the actual results observed/measured during Post Completion review(s).]
 ```
 
-### REST API payload for Outcome creation
+### `acli` JSON payload for Outcome creation
 
-```python
-payload = {
-    "fields": {
-        "project": {"key": "HCMSTRAT"},
-        "summary": "<SUMMARY>",
-        "description": """<WIKI MARKUP BODY>""",
-        "issuetype": {"name": "Outcome"},
-        "customfield_12310031": [{"value": "Red Hat Employee"}],  # security field
-    }
+```json
+{
+  "projectKey": "HCMSTRAT",
+  "summary": "<SUMMARY>",
+  "type": "Outcome",
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+      {"type": "paragraph", "content": [{"type": "text", "text": "<overview paragraph>"}]}
+    ]
+  },
+  "additionalAttributes": {
+    "customfield_12310031": [{"value": "Red Hat Employee"}]
+  }
 }
 ```

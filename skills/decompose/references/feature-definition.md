@@ -52,10 +52,10 @@ Features are **never** created in execution projects (OCM, SREP, OHSS, OCMUI, CL
 
 ## Required Custom Fields
 
-```python
-# In the REST API additional_fields dict:
-"customfield_12310031": [{"value": "Red Hat Employee"}]  # Security — REQUIRED for ALL issues
-"labels": ["ai-generated-jira"]                           # REQUIRED for all AI-created issues
+```json
+// In the additionalAttributes block of the --from-json payload:
+"customfield_12310031": [{"value": "Red Hat Employee"}],
+"labels": ["ai-generated-jira"]
 ```
 
 ### Parent Linking (use these to establish hierarchy)
@@ -74,39 +74,44 @@ Features are **never** created in execution projects (OCM, SREP, OHSS, OCMUI, CL
 
 Features start in `New` when the need is identified, move to `Refinement` when actively scoped with engineering, then `Backlog` when committed for a release.
 
-## CRITICAL: Issue Creation Must Use REST API (not jira-cli)
+## CRITICAL: Issue Creation Must Use `acli --from-json`
 
-**jira-cli corrupts wiki markup** when creating/updating issue descriptions. It converts `#` numbered list items to `h1.` headers, escapes hyphens and parentheses, and removes blank lines. **Always use the Python REST API for creating Features with formatted descriptions.** See `wiki-markup.md` for formatting syntax.
+Use `acli jira workitem create --from-json` for all issue creation. Descriptions must be in **ADF (Atlassian Document Format)**, not Jira wiki markup. Convert the template body content to ADF before writing the JSON payload.
 
-```python
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
+```bash
+acli jira workitem create --from-json /tmp/feature-payload.json --json
+```
 
-key = jira.create_issue({
-    "project": {"key": "OCPSTRAT"},
-    "summary": "Feature summary here",
-    "description": "h2. Market Problem\n\n...",  # Jira wiki markup — use h2. for sections
-    "issuetype": {"name": "Feature"},
-    "customfield_12310031": [{"value": "Red Hat Employee"}],  # security
-    "labels": ["ai-generated-jira"],
-})
-print(f"Created: {key}")
-print(f"URL: {jira.browse_url(key)}")
-EOF
+Example `--from-json` payload schema:
+
+```json
+{
+  "projectKey": "<PROJECT>",
+  "summary": "<SUMMARY>",
+  "type": "Feature",
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+      {"type": "paragraph", "content": [{"type": "text", "text": "<overview paragraph>"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "Market Problem"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "<problem description>"}]}
+    ]
+  },
+  "labels": ["ai-generated-jira"],
+  "additionalAttributes": {
+    "customfield_12310031": [{"value": "Red Hat Employee"}]
+  }
+}
 ```
 
 ### Linking a Feature to its parent Outcome
 
-```python
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.link_issues('Implements', '<FEATURE-KEY>', '<OUTCOME-KEY>')
-print("Link created")
-EOF
+```bash
+acli jira workitem edit --key <NEW-KEY> --from-json /tmp/parent-link.json --yes
 ```
+
+Where `parent-link.json` contains `{"additionalAttributes": {"customfield_12313140": "<OUTCOME-KEY>"}}`.
 
 ## Official Feature Body Template (Jira Wiki Markup)
 

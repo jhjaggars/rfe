@@ -54,18 +54,15 @@ ORDER BY component ASC, votes DESC
 
 ## Phase 2: Fetch All Data
 
-Run the search script with `--all` to paginate through every matching RFE:
+Fetch all matching RFEs using `acli`:
 
 ```bash
-uv run --with requests python3 <SKILL_BASE_DIR>/../triage/scripts/rfe-search.py \
-  --jql "<BUILT JQL>" \
-  --all
+acli jira workitem search --jql "<BUILT JQL>" --json --paginate
 ```
 
-Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
+> **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
-The script prints a summary header followed by one JSON object per line. Each object includes:
-`key`, `summary`, `status`, `priority`, `votes`, `components`, `labels`, `created`, `updated`, `description`, `feature_links`, `coverage`
+Parse the `acli` JSON output. Each issue includes: `key`, `summary`, `status`, `priority`, `votes`, `components`, `labels`, `created`, `updated`, `description`, `issuelinks`. Derive `coverage` from `issuelinks` (Feature-type links present/absent, and whether the RFE itself is closed).
 
 **If the total exceeds 500 results**, warn the user before proceeding:
 
@@ -230,6 +227,5 @@ Use AskUserQuestion to present these options if the conversation is interactive.
 
 - **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **No results returned:** Report the JQL used and suggest relaxing filters (e.g., extend `period`, broaden `status`, remove `component` filter).
-- **REST API 400 with status error:** The JQL uses a status name that doesn't exist in this project. Use `AND status not in ("Closed")` instead. See `../triage/references/rfe-jql-patterns.md` for verified status values.
-- **REST API error (other):** Show the status code and response body, then ask whether to retry with modified parameters.
-- **Script not found:** The search script lives at `../triage/scripts/rfe-search.py` relative to this skill directory. Confirm the path before running.
+- **acli error with status field:** The JQL uses a status name that doesn't exist in this project. Use `AND status not in ("Closed")` instead. See `../triage/references/rfe-jql-patterns.md` for verified status values.
+- **acli error (other):** Show the error message and response body, then ask whether to retry with modified parameters.

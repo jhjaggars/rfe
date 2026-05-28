@@ -47,15 +47,13 @@ Apply argument overrides. The sort order prioritizes: critical before major, hig
 
 ## Phase 2: Fetch the Queue
 
-Run the search script:
+Fetch the queue using `acli`:
 
 ```bash
-uv run --with requests python3 <SKILL_BASE_DIR>/../triage/scripts/rfe-search.py \
-  --jql "<BUILT JQL>" \
-  --limit <LIMIT>
+acli jira workitem search --jql "<BUILT JQL>" --json
 ```
 
-Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
+> **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
 Display a queue overview before starting:
 
@@ -82,34 +80,7 @@ For each RFE in the queue, run through the following steps. Keep session state: 
 ### Step 3a: Fetch Full Detail
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-d = jira.get_issue('<KEY>')
-f = d['fields']
-print('Key:', d['key'])
-print('Summary:', f.get('summary'))
-print('Status:', f['status']['name'])
-print('Priority:', f.get('priority', {}).get('name', 'Unknown'))
-print('Votes:', f.get('votes', {}).get('votes', 0))
-print('Components:', ', '.join(c['name'] for c in f.get('components', [])))
-print('Labels:', ', '.join(f.get('labels', [])))
-print('Created:', f.get('created', '')[:10])
-print('Updated:', f.get('updated', '')[:10])
-print()
-print('Description:')
-print((f.get('description') or 'None')[:3000])
-print()
-print('Linked issues:')
-for link in f.get('issuelinks', []):
-    for direction in ('inwardIssue', 'outwardIssue'):
-        li = link.get(direction)
-        if li:
-            ltype = li.get('fields', {}).get('issuetype', {}).get('name', '?')
-            lstatus = li.get('fields', {}).get('status', {}).get('name', '?')
-            print(f'  [{ltype}] {li["key"]} ({lstatus}): {li["fields"]["summary"]}')
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 ### Step 3b: Assess Readiness
@@ -189,13 +160,7 @@ Then pause — wait for the user to run that command and return before continuin
 **If adding a comment:**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.add_comment('<KEY>', '<COMMENT-TEXT>')
-print("Comment added to <KEY>")
-EOF
+acli jira workitem comment create --key <KEY> --body "<comment text>"
 ```
 
 **If changing status (transitioning):**
@@ -235,5 +200,5 @@ Next steps:
 
 - **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **Empty queue:** If no RFEs match the filter, report the JQL used and suggest broadening (e.g., include `Backlog` status, drop priority filter).
-- **REST API error on comment/transition:** Show the error and ask whether to retry or skip. Do not abort the session.
+- **acli error on comment/transition:** Show the error and ask whether to retry or skip. Do not abort the session.
 - **User wants to restart queue:** Accept "restart" at any prompt to re-display the queue from the beginning.

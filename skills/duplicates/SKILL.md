@@ -42,15 +42,13 @@ Append clauses based on arguments. Always sort `ORDER BY component ASC, summary 
 
 ## Phase 2: Fetch Data
 
-Run the search script with `--all` to paginate all results:
+Fetch all matching RFEs using `acli`:
 
 ```bash
-uv run --with requests python3 <SKILL_BASE_DIR>/../triage/scripts/rfe-search.py \
-  --jql "<BUILT JQL>" \
-  --all
+acli jira workitem search --jql "<BUILT JQL>" --json --paginate
 ```
 
-Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
+> **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
 If the total exceeds 500 RFEs, warn the user and suggest narrowing:
 
@@ -147,55 +145,22 @@ Use AskUserQuestion to present these options.
 
 **When the user confirms closures**, for each RFE to close:
 
-**Step 1: Get available transitions**
+**Step 1: Link as duplicate**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-for t in jira.get_transitions('<KEY>'):
-    print(f"  {t['id']}  {t['name']}")
-EOF
+acli jira workitem link create --out <DUPLICATE-KEY> --in <CANONICAL-KEY> --type "Duplicate" --yes
 ```
 
-Find the transition ID for "Close" (or equivalent terminal transition).
-
-**Step 2: Add a duplicate link**
+**Step 2: Add a comment before closing**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.link_issues('Duplicate', '<DUPLICATE-KEY>', '<CANONICAL-KEY>')
-print("Linked: <DUPLICATE-KEY> duplicates <CANONICAL-KEY>")
-EOF
+acli jira workitem comment create --key <DUPLICATE-KEY> --body "Closing as duplicate of <CANONICAL-KEY>. Please follow <CANONICAL-KEY> for updates on this capability."
 ```
 
-**Step 3: Add a comment before closing**
+**Step 3: Transition to Closed**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-canonical = '<CANONICAL-KEY>'
-jira.add_comment('<DUPLICATE-KEY>', f"Closing as duplicate of {canonical}, which has higher vote count and represents the same capability request. Customer signal is consolidated there.")
-print("Comment added")
-EOF
-```
-
-**Step 4: Transition to Closed**
-
-```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.transition_issue('<DUPLICATE-KEY>', '<TRANSITION-ID>')
-print("Closed: <DUPLICATE-KEY>")
-EOF
+acli jira workitem transition --key <DUPLICATE-KEY> --status "Closed" --yes
 ```
 
 After all closures, print a final summary:
@@ -213,4 +178,4 @@ Closed <N> duplicate RFEs. Canonical issues retained:
 - **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **Transition not found:** List all available transitions and ask the user which to use.
 - **No duplicates found:** Report the scan scope and note that the dataset appears deduplicated.
-- **Link type "Duplicate" rejected:** Try `"Duplicates"` or `"is duplicate of"` — link type names vary by instance. Fetch available types from `GET /rest/api/3/issueLinkType` if needed.
+- **Link type "Duplicate" rejected:** Try `"Duplicates"` or `"is duplicate of"` — link type names vary by instance. List available types with `acli jira workitem link type` if needed.

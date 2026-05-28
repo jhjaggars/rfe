@@ -9,10 +9,10 @@ argument-hint: "<JIRA-KEY>"
 You take a strategy-level JIRA issue — an RFE, Outcome, OCPSTRAT issue, or similar — gather deep context from it and all its linked issues, ask targeted interview questions to fill gaps, then create well-defined Feature or Initiative issues in the appropriate JIRA project.
 
 Read these reference files now before proceeding:
-- `references/feature-definition.md` — Feature template, project routing, custom field IDs, and REST API creation pattern
+- `references/feature-definition.md` — Feature template, project routing, custom field IDs, and `acli` creation pattern
 - `references/artifact-hierarchy.md` — when to create a Feature vs. Initiative vs. Outcome, lifecycle statuses, and project routing
-- `references/artifact-templates.md` — Initiative and Outcome body templates and REST API payloads
-- `references/wiki-markup.md` — Jira wiki markup syntax (required; never use Markdown in issue bodies)
+- `references/artifact-templates.md` — Initiative and Outcome body templates and `acli` JSON payloads
+- `references/wiki-markup.md` — Jira wiki markup reference (for understanding existing issue descriptions; create new issues using ADF)
 
 ---
 
@@ -21,26 +21,7 @@ Read these reference files now before proceeding:
 **Step 1: Fetch the source issue.**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-d = jira.get_issue('<KEY>')
-f = d['fields']
-print('Summary:', f.get('summary'))
-print('Type:', f['issuetype']['name'])
-print('Status:', f['status']['name'])
-print('Description:', (f.get('description') or '')[:2000])
-print()
-print('Issue Links:')
-for link in f.get('issuelinks', []):
-    inward = link.get('inwardIssue')
-    outward = link.get('outwardIssue')
-    if inward:
-        print(f'  [{link["type"]["inward"]}] {inward["key"]}: {inward["fields"]["summary"]}')
-    if outward:
-        print(f'  [{link["type"]["outward"]}] {outward["key"]}: {outward["fields"]["summary"]}')
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 2: Fetch linked issues.**
@@ -53,18 +34,7 @@ Parse all linked issue keys from the output above. Fetch each one, prioritizing:
 Cap at 10 linked issues. For each:
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-d = jira.get_issue('<LINKED-KEY>')
-f = d['fields']
-print('Key:', d['key'])
-print('Summary:', f.get('summary'))
-print('Type:', f['issuetype']['name'])
-print('Status:', f['status']['name'])
-print('Description:', (f.get('description') or '')[:1500])
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 3: Synthesize context.**
@@ -101,18 +71,7 @@ Before drafting anything, search for existing Features and Initiatives that may 
 **Step 1: Search the target project for related Features/Initiatives.**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-project = '<PROJECT>'  # e.g. OCPSTRAT, XCMSTRAT, ROSA, etc.
-keywords = '<KEYWORD>'  # key terms from the RFE summary
-jql = f'project = {project} AND issuetype in (Feature, Initiative) AND text ~ "{keywords}" AND status != Closed ORDER BY updated DESC'
-
-for issue in jira.search(jql, fields='summary,status,issuetype', max_results=20):
-    f = issue['fields']
-    print(f"{issue['key']} [{f['issuetype']['name']}] ({f['status']['name']}) {f['summary']}")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 2: Evaluate results.**
@@ -185,55 +144,33 @@ Ask the user to confirm or request revisions before proceeding to creation. Do n
 
 ## Phase 4: Create in JIRA
 
-**CRITICAL:** Use the Python REST API for creation — jira-cli corrupts wiki markup formatting (converts numbered lists to headers, escapes hyphens). See `references/feature-definition.md` and `references/artifact-templates.md` for the exact patterns per artifact type.
+**CRITICAL:** Use `acli jira workitem create --from-json` for creation. Descriptions must be in ADF (Atlassian Document Format), not Jira wiki markup. Convert the template body content to ADF before writing the JSON payload. See `references/feature-definition.md` and `references/artifact-templates.md` for the required fields and JSON schema.
 
 For each approved artifact:
 
-**Step 1: Create via REST API**
+**Step 1: Create via acli**
 
-Use the payload from the matching template reference (`feature-definition.md` for Features; `artifact-templates.md` for Initiatives/Outcomes). Set `issuetype.name` to `"Feature"`, `"Initiative"`, or `"Outcome"` as appropriate.
+Write the issue payload to a temp JSON file (see `references/feature-definition.md` for the schema), then:
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-key = jira.create_issue({
-    "project": {"key": "<PROJECT>"},
-    "summary": "<SUMMARY>",
-    "description": """<WIKI MARKUP BODY>""",
-    "issuetype": {"name": "<Feature|Initiative|Outcome>"},
-    "customfield_12310031": [{"value": "Red Hat Employee"}],  # security — required
-    "labels": ["ai-generated-jira"],                          # required for AI-created issues
-})
-print(f"Created: {key}")
-print(f"URL: {jira.browse_url(key)}")
-EOF
+acli jira workitem create --from-json /tmp/artifact-payload.json --json
 ```
+
+Note the new issue key from the JSON output.
 
 **Step 2: Link to source issue**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.link_issues('Implements', '<NEW-KEY>', '<SOURCE-KEY>')
-print("Link created: <NEW-KEY> Implements <SOURCE-KEY>")
-EOF
+acli jira workitem link create --out <NEW-KEY> --in <SOURCE-KEY> --type "Implements" --yes
 ```
 
 **Step 3: Link to parent Outcome (if known)**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.link_issues('is implemented by', '<NEW-KEY>', '<OUTCOME-KEY>')
-print("Link created: <NEW-KEY> is implemented by <OUTCOME-KEY>")
-EOF
+acli jira workitem edit --key <NEW-KEY> --from-json /tmp/parent-link.json --yes
 ```
+
+Where `parent-link.json` sets `additionalAttributes.customfield_12313140` to the Outcome key.
 
 **Step 4: Report results**
 
@@ -256,5 +193,5 @@ Links created:
 
 - **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **Project routing unclear:** Ask the user which project to use rather than guessing.
-- **REST API 400 / field errors:** Show the error and ask the user whether to retry with modified fields or proceed manually.
+- **acli error / field errors:** Show the error and ask the user whether to retry with modified fields or proceed manually.
 - **Issue not found:** Report the key that failed and continue with the others.

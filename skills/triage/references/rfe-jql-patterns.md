@@ -112,7 +112,7 @@ ORDER BY votes DESC, created DESC
 | API field name | Description | Notes |
 |----------------|-------------|-------|
 | `summary` | Issue title / one-liner | Always present |
-| `status` | Workflow state | Name values: `New`, `In Progress`, `Under Consideration`, `Triaged`, `Closed`, `Won't Fix` |
+| `status` | Workflow state | Name values: `Approved`, `Refinement`, `Waiting`, `Backlog`, `Closed` |
 | `priority` | Priority level | Values: `Critical`, `Major`, `Minor`, `Undefined` |
 | `components` | Product components | Array of `{name}` objects |
 | `labels` | Free-form tags | Array of strings |
@@ -124,37 +124,26 @@ ORDER BY votes DESC, created DESC
 
 ---
 
-## REST API Search Endpoint
-
-```
-GET $JIRA_URL/rest/api/3/search
-```
-
-**Query parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `jql` | string | URL-encoded JQL query |
-| `maxResults` | int | Max issues to return (default 50, cap 100) |
-| `startAt` | int | Pagination offset (default 0) |
-| `fields` | comma-list | Fields to return; controls response size |
-
-**Recommended `fields` value for `/rfe:triage`:**
-
-```
-summary,status,priority,components,labels,votes,created,updated,issuelinks,description
-```
-
-**Authentication:** Basic auth using `$JIRA_USER` (email) and `$JIRA_API_TOKEN`.
+## acli Search Commands
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
+# Paginate through all results
+acli jira workitem search --jql "<JQL>" --json --paginate
 
-issues = jira.search(jql, max_results=50)
-# issues — list of issue dicts
-EOF
+# Cap at N results
+acli jira workitem search --jql "<JQL>" --json --limit <N>
+
+# Count only
+acli jira workitem search --jql "<JQL>" --count
+```
+
+> **WARNING:** Do NOT use restricted fields in `--fields`. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
+
+**View a single issue:**
+
+```bash
+acli jira workitem view <KEY> --json
+acli jira workitem view <KEY> --fields '*all' --json   # include all available fields
 ```
 
 **Response structure per issue:**

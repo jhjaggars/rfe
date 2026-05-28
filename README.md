@@ -4,10 +4,20 @@ A Claude Code plugin with skills for triaging RFEs and decomposing them into wel
 
 ## Skills
 
-- **`/rfe:init`** — Check and install prerequisites, configure JIRA credentials (API token + email), verify REST API access, and print a status summary. Run this first.
+### Core workflow
+
+- **`/rfe:init`** — Check prerequisites, configure JIRA credentials, verify `acli` access, and print a status summary. Run this first.
 - **`/rfe:triage`** — Query the RFE project, classify results by Feature coverage, and identify which RFEs are ready to decompose.
-- **`/rfe:decompose`** — Fetch a strategy issue and all its linked RFEs, conduct a targeted interview to fill gaps, draft Feature issues for review, then create them via the JIRA REST API.
-- **`/rfe:analyze`** — Fetch all RFEs from a configurable time window, group them by component, identify themes (clusters of RFEs addressing the same capability), and surface cross-component opportunities for combined Features.
+- **`/rfe:decompose`** — Fetch a strategy issue and all its linked RFEs, conduct a targeted interview to fill gaps, draft Feature issues for review, then create them via `acli`.
+
+### Analysis & maintenance
+
+- **`/rfe:analyze`** — Fetch all RFEs from a configurable time window, group by component, identify themes, and surface cross-component opportunities.
+- **`/rfe:assess`** — Score individual RFEs against a quality rubric (WHAT, WHY, Open to HOW, Not a task, Right-sized). Accepts one or more RFE keys.
+- **`/rfe:report`** — Generate a comprehensive prioritization report across all open RFEs, categorized by component, priority, coverage, and votes.
+- **`/rfe:duplicates`** — Scan open RFEs for duplicate or near-duplicate requests, cluster them, and recommend which to close.
+- **`/rfe:orphans`** — Find open RFEs where the requested functionality has already shipped (unlinked), and suggest closing them.
+- **`/rfe:refine`** — Run a structured refinement session through a priority-ordered RFE queue, assessing readiness and advancing candidates toward Feature creation.
 
 ## Prerequisites
 
@@ -47,18 +57,19 @@ Run `/rfe:init` once to verify your environment and configure JIRA access:
 
 This works through four phases:
 
-1. **Prerequisites** — checks for `python3` and `uv`, installs them via Homebrew/curl if missing
+1. **Prerequisites** — checks for `acli`, with installation guidance if missing
 2. **JIRA credentials** — checks for `JIRA_API_TOKEN` and `JIRA_USER` in your environment; if absent, guides you to create an API token and configure your email
-3. **API verification** — runs a live search to confirm the token works and the REST API is reachable
+3. **Access verification** — runs a live `acli` query to confirm the token works and JIRA is reachable
 4. **Summary** — prints a status table showing pass/fail for each check
 
 ```
 rfe setup check
 ───────────────────────────────────
-  python3          ✓  3.x.y
-  uv               ✓  x.y.z
+  acli             ✓  x.y.z
+  JIRA_URL         ✓  configured
   JIRA_API_TOKEN   ✓  configured
-  JIRA access      ✓  REST API reachable
+  JIRA_USER        ✓  configured
+  JIRA access      ✓  acli query succeeded
 ───────────────────────────────────
 All checks passed. You're ready to use the rfe plugin.
 
@@ -143,7 +154,7 @@ The skill works through four phases:
 
 3. **Draft review** — presents complete Feature drafts using the official template, with all sections filled using real content (no placeholders). No issues are created until you approve.
 
-4. **JIRA creation** — creates each approved Feature via the REST API, then links it back to the source issue. Reports the new keys and direct browse URLs.
+4. **JIRA creation** — creates each approved Feature via `acli`, then links it back to the source issue. Reports the new keys and direct browse URLs.
 
 Example output after creation:
 

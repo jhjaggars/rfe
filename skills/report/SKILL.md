@@ -45,20 +45,18 @@ Order by: `ORDER BY priority ASC, votes DESC, created DESC`
 
 ## Phase 2: Fetch & Generate
 
-Run the report script with `--all` to fetch every matching RFE and produce the report in one step:
+Fetch all matching RFEs using `acli`:
 
 ```bash
-Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
+acli jira workitem search --jql "<BUILT JQL>" --json --paginate
+```
 
 > **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
-Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
-
-The script:
-1. Paginates through all matching RFEs via the JIRA v3 search API
-2. Classifies each by Feature coverage (`none` / `partial`)
-3. Computes composite scores (priority weight x 10 + votes + recency bonus)
-4. Generates a full markdown report with these sections:
+Parse the JSON output, then:
+1. Classify each RFE by Feature coverage (examine `issuelinks` for Feature-type links: `none` / `partial`)
+2. Compute composite scores (priority weight × 10 + votes + recency bonus)
+3. Generate a full markdown report with these sections:
    - Executive Summary
    - Status / Priority / Coverage breakdowns
    - Top 30 components by composite score
@@ -98,4 +96,4 @@ What would you like to do next?
 
 - **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **No results returned:** Report the JQL used and suggest relaxing filters.
-- **REST API error:** Show the status code and response body, then ask whether to retry with modified parameters.
+- **acli error:** Show the error message and response body, then ask whether to retry with modified parameters.

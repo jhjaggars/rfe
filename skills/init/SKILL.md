@@ -10,43 +10,19 @@ You help the user get set up to use the rfe plugin. Work through the three phase
 
 ---
 
-## Phase 1: Check & Install Prerequisites
+## Phase 1: Check Prerequisites
 
-### python3
-
-Run:
-
-```bash
-python3 --version
-```
-
-- If it succeeds → note the version and continue.
-- If it fails (command not found) → install it:
-
-```bash
-brew install python3
-```
-
-Re-verify with `python3 --version`. If it still fails, stop and tell the user:
-> "python3 could not be installed automatically. Please install it manually from https://www.python.org/downloads/ and re-run `/rfe:init`."
-
-### uv
+### acli
 
 Run:
 
 ```bash
-uv --version
+acli --version
 ```
 
 - If it succeeds → note the version and continue.
-- If it fails (command not found) → install it:
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-Re-verify with `uv --version`. If it still fails, stop and tell the user:
-> "uv could not be installed automatically. Please install it manually by following the instructions at https://docs.astral.sh/uv/getting-started/installation/ and re-run `/rfe:init`."
+- If it fails (command not found) → stop and tell the user:
+  > "`acli` is not installed. Install the Atlassian CLI from https://developer.atlassian.com/cloud/acli/ and re-run `/rfe:init`."
 
 ---
 
@@ -107,14 +83,11 @@ export JIRA_USER="<EMAIL>"
 
 ## Phase 3: Verify Access
 
-Run a minimal search using the rfe-search script to confirm the token works and the REST API is reachable:
+Run a minimal search using `acli` to confirm the token works and JIRA is reachable:
 
 ```bash
-Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
-
-> **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
-
-> Note: `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file. Use the actual path.
+acli jira workitem search --jql 'project = RFE AND issuetype = "Feature Request"' --limit 1 --json
+```
 
 - If it returns one issue → access is confirmed.
 - If it returns an authentication error (401/403) → tell the user:
@@ -131,12 +104,11 @@ Print a summary table:
 ```
 rfe setup check
 ───────────────────────────────────
-  python3          ✓  3.x.y
-  uv               ✓  x.y.z
+  acli             ✓  x.y.z
   JIRA_URL         ✓  configured
   JIRA_API_TOKEN   ✓  configured
   JIRA_USER        ✓  configured
-  JIRA access      ✓  REST API reachable
+  JIRA access      ✓  acli query succeeded
 ───────────────────────────────────
 All checks passed. You're ready to use the rfe plugin.
 

@@ -38,20 +38,21 @@ Build the final JQL. Start from the base query in `references/rfe-jql-patterns.m
 
 ## Phase 2: Search & Classify
 
-**Search JIRA** using the reusable script at `scripts/rfe-search.py` within this skill's base directory:
+**Search JIRA** using `acli`:
 
 ```bash
-Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
+acli jira workitem search --jql "<BUILT JQL>" --json --paginate
+```
 
 > **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
-The script prints a summary header line followed by one JSON object per issue. Classify each RFE by its `coverage` field:
+Parse the `acli` JSON output. Classify each RFE by examining its `issuelinks` field — look for linked issues where the linked issue's `issuetype.name` is `"Feature"`:
 
 | Coverage | Meaning |
 |----------|---------|
-| `none` | No Features linked — actionable candidate |
-| `partial` | Has Feature links but RFE still open — may need more Features |
-| `decomposed` | Has Feature links and RFE is closed — likely fully addressed |
+| `none` | No Feature-type issue links — actionable candidate |
+| `partial` | Has Feature-type links but RFE still open — may need more Features |
+| `decomposed` | Has Feature-type links and RFE is closed — likely fully addressed |
 
 ---
 
@@ -105,5 +106,5 @@ To create Features from this RFE, run:
 
 - **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **No results returned:** Report the JQL used and suggest relaxing filters (e.g., drop `priority`, broaden `status`, remove `text` filter).
-- **REST API 400 with "value does not exist for field 'status'":** The JQL contains a status name that doesn't exist in this project. Use `AND status not in ("Closed")` instead of listing open statuses explicitly. See `references/rfe-jql-patterns.md` for the verified status values.
-- **REST API error (other):** Show the status code and response body, then ask whether to retry with modified parameters.
+- **acli error "value does not exist for field 'status'":** The JQL contains a status name that doesn't exist in this project. Use `AND status not in ("Closed")` instead of listing open statuses explicitly. See `references/rfe-jql-patterns.md` for the verified status values.
+- **acli error (other):** Show the error message and response body, then ask whether to retry with modified parameters.

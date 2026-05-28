@@ -29,7 +29,7 @@ Read `../triage/references/rfe-jql-patterns.md` now. It contains the base JQL an
 - **Low-vote uncovered RFEs** — zero-vote RFEs with no Feature links (least customer traction, easiest to close)
 - **All uncovered open RFEs** — full scan (may be large)
 
-Build the JQL. Start from the base query and always restrict to uncovered RFEs (no Feature links is captured by `coverage = "none"` in the search script output — filter in post-processing rather than JQL, since JQL cannot filter on derived fields):
+Build the JQL. Start from the base query and always restrict to uncovered RFEs. Coverage is derived in post-processing (by checking `issuelinks` for Feature-type links) rather than in JQL, since JQL cannot filter on derived fields:
 
 ```
 project = RFE AND issuetype = "Feature Request"
@@ -43,16 +43,15 @@ Sort by `ORDER BY created ASC` (oldest first — these are most likely shipped).
 
 ## Phase 2: Fetch RFEs
 
-Run the search script:
+Fetch RFEs using `acli`:
 
 ```bash
-Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
+acli jira workitem search --jql "<BUILT JQL>" --json --paginate
+```
 
 > **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
-Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
-
-**Post-filter**: Keep only records where `coverage == "none"` — RFEs with zero Feature links. These are the only candidates; RFEs with Feature links are tracked and not orphans.
+**Post-filter**: Keep only RFEs where `issuelinks` contains no Feature-type linked issues (coverage = `none`). RFEs with Feature links are tracked and not orphans.
 
 If more than 400 RFEs remain, warn and suggest narrowing before proceeding.
 
@@ -65,7 +64,7 @@ For each RFE (or in batches), extract 2–4 keyword phrases from the `summary` a
 **Search each component's strategy project** (infer from component name — e.g., ROSA → ROSA or XCMSTRAT; HyperShift → OCPSTRAT; MCE → CNTRLPLANE):
 
 ```bash
-Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
+acli jira workitem search --jql 'project = <PROJ> AND issuetype = Feature AND status in (Done, Closed) AND text ~ "<keywords>"' --json
 ```
 
 Run this for each uncovered RFE. Batch where possible (process all RFEs in a component together before moving to the next component, reusing the same project search).
@@ -154,30 +153,22 @@ Ask the user how to proceed using AskUserQuestion with up to 4 options:
 
 **When closing an RFE as shipped**, for each:
 
-**Step 1: Get available transitions**
+**Step 1: Add a link to the shipping Feature**
 
 ```bash
-Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
+acli jira workitem link create --out <RFE-KEY> --in <FEATURE-KEY> --type "Implements" --yes
 ```
 
-Find the transition ID for "Close" (or terminal state). If a resolution field is required, look for one named "Done", "Fixed", or "Already Exists".
-
-**Step 2: Add a link to the shipping Feature**
+**Step 2: Add a comment**
 
 ```bash
-Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
+acli jira workitem comment create --key <RFE-KEY> --body "Closing — functionality delivered in <FEATURE-KEY>. See that issue for details."
 ```
 
-**Step 3: Add a comment**
+**Step 3: Close the RFE**
 
 ```bash
-Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
-```
-
-**Step 4: Close the RFE**
-
-```bash
-Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
+acli jira workitem transition --key <RFE-KEY> --status "Closed" --yes
 ```
 
 Print a final closure summary when done.

@@ -9,10 +9,10 @@ argument-hint: "<JIRA-KEY>"
 You take a strategy-level JIRA issue — an RFE, Outcome, OCPSTRAT issue, or similar — gather deep context from it and all its linked issues, ask targeted interview questions to fill gaps, then create well-defined Feature or Initiative issues in the appropriate JIRA project.
 
 Read these reference files now before proceeding:
-- `references/feature-definition.md` — Feature template, project routing, custom field IDs, and REST API creation pattern
+- `references/feature-definition.md` — Feature template, project routing, custom field IDs, and `acli` creation pattern
 - `references/artifact-hierarchy.md` — when to create a Feature vs. Initiative vs. Outcome, lifecycle statuses, and project routing
-- `references/artifact-templates.md` — Initiative and Outcome body templates and REST API payloads
-- `references/wiki-markup.md` — Jira wiki markup syntax (required; never use Markdown in issue bodies)
+- `references/artifact-templates.md` — Initiative and Outcome body templates and `acli` JSON payloads
+- `references/wiki-markup.md` — Jira wiki markup reference (for understanding existing issue descriptions; create new issues using ADF)
 
 ---
 
@@ -144,29 +144,33 @@ Ask the user to confirm or request revisions before proceeding to creation. Do n
 
 ## Phase 4: Create in JIRA
 
-**CRITICAL:** Use the Python REST API for creation — jira-cli corrupts wiki markup formatting (converts numbered lists to headers, escapes hyphens). See `references/feature-definition.md` and `references/artifact-templates.md` for the exact patterns per artifact type.
+**CRITICAL:** Use `acli jira workitem create --from-json` for creation. Descriptions must be in ADF (Atlassian Document Format), not Jira wiki markup. Convert the template body content to ADF before writing the JSON payload. See `references/feature-definition.md` and `references/artifact-templates.md` for the required fields and JSON schema.
 
 For each approved artifact:
 
-**Step 1: Create via REST API**
+**Step 1: Create via acli**
 
-Use the payload from the matching template reference (`feature-definition.md` for Features; `artifact-templates.md` for Initiatives/Outcomes). Set `issuetype.name` to `"Feature"`, `"Initiative"`, or `"Outcome"` as appropriate.
+Write the issue payload to a temp JSON file (see `references/feature-definition.md` for the schema), then:
 
 ```bash
-Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
+acli jira workitem create --from-json /tmp/artifact-payload.json --json
 ```
+
+Note the new issue key from the JSON output.
 
 **Step 2: Link to source issue**
 
 ```bash
-Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
+acli jira workitem link create --out <NEW-KEY> --in <SOURCE-KEY> --type "Implements" --yes
 ```
 
 **Step 3: Link to parent Outcome (if known)**
 
 ```bash
-Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
+acli jira workitem edit --key <NEW-KEY> --from-json /tmp/parent-link.json --yes
 ```
+
+Where `parent-link.json` sets `additionalAttributes.customfield_12313140` to the Outcome key.
 
 **Step 4: Report results**
 
@@ -189,5 +193,5 @@ Links created:
 
 - **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **Project routing unclear:** Ask the user which project to use rather than guessing.
-- **REST API 400 / field errors:** Show the error and ask the user whether to retry with modified fields or proceed manually.
+- **acli error / field errors:** Show the error and ask the user whether to retry with modified fields or proceed manually.
 - **Issue not found:** Report the key that failed and continue with the others.

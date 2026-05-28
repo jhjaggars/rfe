@@ -47,14 +47,13 @@ Apply argument overrides. The sort order prioritizes: critical before major, hig
 
 ## Phase 2: Fetch the Queue
 
-Run the search script:
+Fetch the queue using `acli`:
 
 ```bash
-Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
+acli jira workitem search --jql "<BUILT JQL>" --json
+```
 
 > **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
-
-Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
 
 Display a queue overview before starting:
 
@@ -161,7 +160,7 @@ Then pause — wait for the user to run that command and return before continuin
 **If adding a comment:**
 
 ```bash
-Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
+acli jira workitem comment create --key <KEY> --body "<comment text>"
 ```
 
 **If changing status (transitioning):**
@@ -201,5 +200,5 @@ Next steps:
 
 - **JIRA_API_TOKEN or JIRA_USER not set:** Tell the user: "Set `export JIRA_API_TOKEN=<your-token>` and `export JIRA_USER=<your-email>` before running, or run `/rfe:init`."
 - **Empty queue:** If no RFEs match the filter, report the JQL used and suggest broadening (e.g., include `Backlog` status, drop priority filter).
-- **REST API error on comment/transition:** Show the error and ask whether to retry or skip. Do not abort the session.
+- **acli error on comment/transition:** Show the error and ask whether to retry or skip. Do not abort the session.
 - **User wants to restart queue:** Accept "restart" at any prompt to re-display the queue from the beginning.

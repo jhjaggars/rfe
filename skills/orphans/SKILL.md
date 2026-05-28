@@ -46,10 +46,9 @@ Sort by `ORDER BY created ASC` (oldest first — these are most likely shipped).
 Run the search script:
 
 ```bash
-uv run --with requests python3 <SKILL_BASE_DIR>/../triage/scripts/rfe-search.py \
-  --jql "<BUILT JQL>" \
-  --all
-```
+Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
+
+> **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
 Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
 
@@ -66,27 +65,7 @@ For each RFE (or in batches), extract 2–4 keyword phrases from the `summary` a
 **Search each component's strategy project** (infer from component name — e.g., ROSA → ROSA or XCMSTRAT; HyperShift → OCPSTRAT; MCE → CNTRLPLANE):
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-keywords = '<KEYWORD-PHRASE>'
-project = '<PROJECT>'  # e.g. OCPSTRAT, XCMSTRAT, ROSA, CLID, CFEPLAN
-jql = (
-    f'project = {project} AND issuetype in (Feature, Story, Initiative) '
-    f'AND text ~ "{keywords}" AND status in (Done, Closed, Released) '
-    f'ORDER BY updated DESC'
-)
-
-issues = jira.search(jql, fields='summary,status,issuetype,fixVersions', max_results=10)
-if issues:
-    for i in issues:
-        f = i['fields']
-        versions = ', '.join(v['name'] for v in f.get('fixVersions', []))
-        print(f"{i['key']} [{f['issuetype']['name']}] ({f['status']['name']}) {f['summary']} [{versions}]")
-else:
-    print("no matches")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 Run this for each uncovered RFE. Batch where possible (process all RFEs in a component together before moving to the next component, reusing the same project search).
@@ -178,13 +157,7 @@ Ask the user how to proceed using AskUserQuestion with up to 4 options:
 **Step 1: Get available transitions**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-for t in jira.get_transitions('<KEY>'):
-    print(f"  {t['id']}  {t['name']}")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 Find the transition ID for "Close" (or terminal state). If a resolution field is required, look for one named "Done", "Fixed", or "Already Exists".
@@ -192,39 +165,19 @@ Find the transition ID for "Close" (or terminal state). If a resolution field is
 **Step 2: Add a link to the shipping Feature**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.link_issues('is implemented by', '<FEATURE-KEY>', '<RFE-KEY>')
-print("Linked")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 3: Add a comment**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-feature = '<FEATURE-KEY>'
-jira.add_comment('<RFE-KEY>', f"Closing as this capability was delivered in {feature}. The requested functionality is now available in the product. If you believe something is still missing, please open a new RFE with specific details.")
-print("Comment added")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 4: Close the RFE**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.transition_issue('<RFE-KEY>', '<TRANSITION-ID>')
-# If a resolution is required: jira.transition_issue('<RFE-KEY>', '<TRANSITION-ID>', resolution='Done')
-print("Closed: <RFE-KEY>")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 Print a final closure summary when done.

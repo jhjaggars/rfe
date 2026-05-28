@@ -48,11 +48,9 @@ Order by: `ORDER BY priority ASC, votes DESC, created DESC`
 Run the report script with `--all` to fetch every matching RFE and produce the report in one step:
 
 ```bash
-uv run --with requests python3 <SKILL_BASE_DIR>/scripts/rfe-report.py \
-  --jql "<BUILT JQL>" \
-  --all \
-  --output "<OUTPUT PATH>"
-```
+Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
+
+> **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
 Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
 

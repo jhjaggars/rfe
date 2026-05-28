@@ -45,10 +45,9 @@ Append clauses based on arguments. Always sort `ORDER BY component ASC, summary 
 Run the search script with `--all` to paginate all results:
 
 ```bash
-uv run --with requests python3 <SKILL_BASE_DIR>/../triage/scripts/rfe-search.py \
-  --jql "<BUILT JQL>" \
-  --all
-```
+Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
+
+> **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
 Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
 
@@ -150,13 +149,7 @@ Use AskUserQuestion to present these options.
 **Step 1: Get available transitions**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-for t in jira.get_transitions('<KEY>'):
-    print(f"  {t['id']}  {t['name']}")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 Find the transition ID for "Close" (or equivalent terminal transition).
@@ -164,38 +157,19 @@ Find the transition ID for "Close" (or equivalent terminal transition).
 **Step 2: Add a duplicate link**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.link_issues('Duplicate', '<DUPLICATE-KEY>', '<CANONICAL-KEY>')
-print("Linked: <DUPLICATE-KEY> duplicates <CANONICAL-KEY>")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 3: Add a comment before closing**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-canonical = '<CANONICAL-KEY>'
-jira.add_comment('<DUPLICATE-KEY>', f"Closing as duplicate of {canonical}, which has higher vote count and represents the same capability request. Customer signal is consolidated there.")
-print("Comment added")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 4: Transition to Closed**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.transition_issue('<DUPLICATE-KEY>', '<TRANSITION-ID>')
-print("Closed: <DUPLICATE-KEY>")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 After all closures, print a final summary:

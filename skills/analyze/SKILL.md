@@ -57,10 +57,9 @@ ORDER BY component ASC, votes DESC
 Run the search script with `--all` to paginate through every matching RFE:
 
 ```bash
-uv run --with requests python3 <SKILL_BASE_DIR>/../triage/scripts/rfe-search.py \
-  --jql "<BUILT JQL>" \
-  --all
-```
+Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
+
+> **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
 Where `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file.
 

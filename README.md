@@ -11,8 +11,7 @@ A Claude Code plugin with skills for triaging RFEs and decomposing them into wel
 
 ## Prerequisites
 
-- **python3** — standard on macOS; install via `brew install python3` if missing
-- **uv** — install via `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- **acli** — Atlassian CLI must be installed
 - **JIRA_URL** — base URL of your Jira instance (e.g. `https://redhat.atlassian.net`)
 - **JIRA_API_TOKEN** — generated at [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
 - **JIRA_USER** — your email address (used for Basic auth)
@@ -205,4 +204,4 @@ the scaling framework would address all three.
 
 ## Technical notes
 
-All JIRA operations use the REST API via Python (`uv run --with requests`). The `requests` dependency is fetched automatically by `uv` on each invocation — no manual install required. `jira-cli` is not used because it corrupts wiki markup formatting (converts numbered lists to headers, escapes hyphens). `JIRA_API_TOKEN` must be set in your environment — run `/rfe:init` if you haven't configured it yet.
+All JIRA operations use the Atlassian CLI (`acli`). Ensure `acli` is installed and configured in your environment.

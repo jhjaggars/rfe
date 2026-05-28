@@ -148,13 +148,7 @@ summary,status,priority,components,labels,votes,created,updated,issuelinks,descr
 **Authentication:** Basic auth using `$JIRA_USER` (email) and `$JIRA_API_TOKEN`.
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-issues = jira.search(jql, max_results=50)
-# issues — list of issue dicts
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Response structure per issue:**

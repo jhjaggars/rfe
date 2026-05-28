@@ -21,26 +21,7 @@ Read these reference files now before proceeding:
 **Step 1: Fetch the source issue.**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-d = jira.get_issue('<KEY>')
-f = d['fields']
-print('Summary:', f.get('summary'))
-print('Type:', f['issuetype']['name'])
-print('Status:', f['status']['name'])
-print('Description:', (f.get('description') or '')[:2000])
-print()
-print('Issue Links:')
-for link in f.get('issuelinks', []):
-    inward = link.get('inwardIssue')
-    outward = link.get('outwardIssue')
-    if inward:
-        print(f'  [{link["type"]["inward"]}] {inward["key"]}: {inward["fields"]["summary"]}')
-    if outward:
-        print(f'  [{link["type"]["outward"]}] {outward["key"]}: {outward["fields"]["summary"]}')
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 2: Fetch linked issues.**
@@ -53,18 +34,7 @@ Parse all linked issue keys from the output above. Fetch each one, prioritizing:
 Cap at 10 linked issues. For each:
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-d = jira.get_issue('<LINKED-KEY>')
-f = d['fields']
-print('Key:', d['key'])
-print('Summary:', f.get('summary'))
-print('Type:', f['issuetype']['name'])
-print('Status:', f['status']['name'])
-print('Description:', (f.get('description') or '')[:1500])
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 3: Synthesize context.**
@@ -101,18 +71,7 @@ Before drafting anything, search for existing Features and Initiatives that may 
 **Step 1: Search the target project for related Features/Initiatives.**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-project = '<PROJECT>'  # e.g. OCPSTRAT, XCMSTRAT, ROSA, etc.
-keywords = '<KEYWORD>'  # key terms from the RFE summary
-jql = f'project = {project} AND issuetype in (Feature, Initiative) AND text ~ "{keywords}" AND status != Closed ORDER BY updated DESC'
-
-for issue in jira.search(jql, fields='summary,status,issuetype', max_results=20):
-    f = issue['fields']
-    print(f"{issue['key']} [{f['issuetype']['name']}] ({f['status']['name']}) {f['summary']}")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 2: Evaluate results.**
@@ -194,45 +153,19 @@ For each approved artifact:
 Use the payload from the matching template reference (`feature-definition.md` for Features; `artifact-templates.md` for Initiatives/Outcomes). Set `issuetype.name` to `"Feature"`, `"Initiative"`, or `"Outcome"` as appropriate.
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-key = jira.create_issue({
-    "project": {"key": "<PROJECT>"},
-    "summary": "<SUMMARY>",
-    "description": """<WIKI MARKUP BODY>""",
-    "issuetype": {"name": "<Feature|Initiative|Outcome>"},
-    "customfield_12310031": [{"value": "Red Hat Employee"}],  # security — required
-    "labels": ["ai-generated-jira"],                          # required for AI-created issues
-})
-print(f"Created: {key}")
-print(f"URL: {jira.browse_url(key)}")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 2: Link to source issue**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.link_issues('Implements', '<NEW-KEY>', '<SOURCE-KEY>')
-print("Link created: <NEW-KEY> Implements <SOURCE-KEY>")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 3: Link to parent Outcome (if known)**
 
 ```bash
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.link_issues('is implemented by', '<NEW-KEY>', '<OUTCOME-KEY>')
-print("Link created: <NEW-KEY> is implemented by <OUTCOME-KEY>")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 **Step 4: Report results**

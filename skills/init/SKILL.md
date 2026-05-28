@@ -110,10 +110,9 @@ export JIRA_USER="<EMAIL>"
 Run a minimal search using the rfe-search script to confirm the token works and the REST API is reachable:
 
 ```bash
-uv run --with requests python3 <SKILL_BASE_DIR>/../../skills/triage/scripts/rfe-search.py \
-  --jql "project = RFE ORDER BY updated DESC" \
-  --limit 1
-```
+Run the appropriate `acli jira workitem` command (e.g. `acli jira workitem search --jql \"<BUILT JQL>\" --json`) directly to fetch data.
+
+> **WARNING:** Do NOT use restricted fields (like `components`, `created`, `updated`, `parent`, etc.) in the `--fields` argument. The `acli` tool has a strict allowlist and will fail with a "field not allowed" error. Rely on the default JSON output instead.
 
 > Note: `<SKILL_BASE_DIR>` is the directory containing this SKILL.md file. Use the actual path.
 

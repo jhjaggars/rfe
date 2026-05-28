@@ -79,33 +79,13 @@ Features start in `New` when the need is identified, move to `Refinement` when a
 **jira-cli corrupts wiki markup** when creating/updating issue descriptions. It converts `#` numbered list items to `h1.` headers, escapes hyphens and parentheses, and removes blank lines. **Always use the Python REST API for creating Features with formatted descriptions.** See `wiki-markup.md` for formatting syntax.
 
 ```python
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-key = jira.create_issue({
-    "project": {"key": "OCPSTRAT"},
-    "summary": "Feature summary here",
-    "description": "h2. Market Problem\n\n...",  # Jira wiki markup — use h2. for sections
-    "issuetype": {"name": "Feature"},
-    "customfield_12310031": [{"value": "Red Hat Employee"}],  # security
-    "labels": ["ai-generated-jira"],
-})
-print(f"Created: {key}")
-print(f"URL: {jira.browse_url(key)}")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 ### Linking a Feature to its parent Outcome
 
 ```python
-uv run --with requests python3 - << 'EOF'
-import sys; sys.path.insert(0, 'scripts')
-import jira
-
-jira.link_issues('Implements', '<FEATURE-KEY>', '<OUTCOME-KEY>')
-print("Link created")
-EOF
+Run `acli jira workitem view <KEY> --json` (or appropriate acli command) and parse the JSON output directly.
 ```
 
 ## Official Feature Body Template (Jira Wiki Markup)
